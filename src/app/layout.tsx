@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Shell } from "@/components/layout/Shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-ivory text-charcoal selection:bg-ember/20 selection:text-charcoal flex flex-col">
-        {children}
+        <Shell>{children}</Shell>
       </body>
     </html>
   );
