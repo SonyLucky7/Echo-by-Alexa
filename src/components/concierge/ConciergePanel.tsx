@@ -24,25 +24,18 @@ export const ConciergePanel: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 group flex items-center gap-3 bg-charcoal text-ivory pl-4 pr-5 py-3.5 rounded-full shadow-2xl border border-ember/30 hover:border-ember transition-all duration-300 hover:scale-105 active:scale-95"
+          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2.5 bg-charcoal text-ivory px-4 py-3 rounded-full shadow-2xl border border-ivory/15 hover:border-ember/50 transition-all duration-300 hover:scale-[1.03] active:scale-95"
           aria-label="Open Dining Concierge"
         >
           <div className="relative">
-            <div className="w-7 h-7 rounded-full bg-forest flex items-center justify-center text-ember">
-              <Sparkles className="w-4 h-4 animate-spin-slow" />
+            <div className="w-6 h-6 rounded-full bg-forest flex items-center justify-center text-ember">
+              <Sparkles className="w-3.5 h-3.5" />
             </div>
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-ember rounded-full animate-ping" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-ember rounded-full" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-ember rounded-full" />
           </div>
-
-          <div className="text-left hidden sm:block">
-            <p className="text-xs font-serif font-medium tracking-wide">
-              Alexa Concierge
-            </p>
-            <p className="text-[10px] text-ivory/60 font-sans uppercase tracking-wider">
-              Multilingual AI Dining
-            </p>
-          </div>
+          <span className="text-xs font-medium tracking-wider uppercase text-ivory/90 pr-1">
+            Concierge
+          </span>
         </button>
       )}
 

@@ -2,106 +2,83 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mic, ArrowRight, Flame, Leaf, Sparkles } from "lucide-react";
+import { Mic, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export interface HeroProps {
   onOpenVoice?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenVoice = () => {} }) => {
+export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
+  const handleVoiceClick = () => {
+    if (onOpenVoice) {
+      onOpenVoice();
+    }
+    window.dispatchEvent(new CustomEvent("echo:open-voice"));
+  };
+
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center px-6 md:px-12 py-20 overflow-hidden bg-charcoal text-ivory">
-      {/* Background Photography with Sophisticated Editorial Tint */}
+    <section className="relative min-h-[90vh] flex items-center justify-center px-6 md:px-12 py-24 overflow-hidden bg-charcoal text-ivory">
+      {/* Background Photography with Atmospheric Vignette */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=2000&q=85"
-          alt="ECHO Hearth Live Cooking"
-          className="w-full h-full object-cover opacity-35 scale-105 transition-transform duration-1000 ease-out"
+          src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=2400&q=85"
+          alt="ECHO Live Hearth Cooking"
+          className="w-full h-full object-cover opacity-30 scale-100 transition-transform duration-1000 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-charcoal/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-charcoal/80" />
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-charcoal/40 to-charcoal" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
-        {/* Subtle Hospitality Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-ivory/10 border border-ivory/15 backdrop-blur-md mb-8 animate-fade-in">
-          <Flame className="w-3.5 h-3.5 text-ember" />
-          <span className="text-xs uppercase tracking-widest text-ivory/90 font-medium">
-            Open Hearth & Foraged Wild Botanicals
+      <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
+        {/* Subtle Restrained Eyebrow */}
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-full border border-ivory/15 bg-ivory/5 backdrop-blur-md mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-ember animate-pulse" />
+          <span className="text-[11px] uppercase tracking-[0.25em] text-ivory/80 font-medium">
+            Progressive Hearth & Botanicals
           </span>
-          <span className="w-1 h-1 rounded-full bg-ember" />
-          <span className="text-xs text-ivory/70">Table, Pickup & Delivery</span>
         </div>
 
-        {/* Cinematic Headline */}
-        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight text-ivory leading-[1.08] mb-6 max-w-4xl text-balance">
-          Where Elemental Fire Meets <span className="italic font-light text-ember">Wild Aromatics</span>
+        {/* Headline: Max 2 Lines, High Editorial Polish */}
+        <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ivory leading-[1.1] mb-6 max-w-3xl text-balance">
+          Where Fire Meets <span className="italic font-light text-ember">Wild Terroir</span>
         </h1>
 
-        {/* Narrative Description */}
-        <p className="text-base sm:text-lg md:text-xl text-ivory/75 max-w-2xl font-light leading-relaxed mb-10 text-balance">
-          Welcome to ECHO. A culinary sanctuary devoted to open fruitwood flame, ancient grains, and coastal botanical herbs. Experience intuitive dining assisted by our multilingual concierge.
+        {/* Narrative Description: Concise, Pure Luxury */}
+        <p className="text-base sm:text-lg text-ivory/70 max-w-xl font-light leading-relaxed mb-10 text-balance">
+          An intimate dining sanctuary devoted to open fruitwood embers, cold-foraged botanicals, and heirloom grains.
         </p>
 
-        {/* Primary Actions */}
+        {/* Primary Actions: Clean, Refined, No Nested Spec Labels */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Link href="/menu" className="w-full sm:w-auto">
             <Button
               variant="ember"
               size="lg"
-              className="w-full sm:w-auto shadow-floating hover:shadow-lg flex items-center justify-center gap-2 text-base px-8 py-4"
+              className="w-full sm:w-auto rounded-full px-8 py-4 text-sm font-medium tracking-wide shadow-floating hover:shadow-lg transition-all flex items-center justify-center gap-2"
             >
-              <span>Explore Curated Menu</span>
+              <span>Explore Menu</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
 
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={onOpenVoice}
-            className="w-full sm:w-auto border-ivory/25 text-ivory hover:bg-ivory/10 backdrop-blur-sm flex items-center justify-center gap-2 text-base px-8 py-4"
+          <button
+            type="button"
+            onClick={handleVoiceClick}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full border border-ivory/20 bg-ivory/5 hover:bg-ivory/15 text-ivory backdrop-blur-md text-sm font-medium tracking-wide transition-all duration-300"
           >
-            <Mic className="w-4 h-4 text-ember animate-pulse" />
+            <Mic className="w-4 h-4 text-ember" />
             <span>Speak with Alexa</span>
-            <span className="text-xs text-ivory/60 ml-1 font-normal hidden md:inline">
-              (5 Languages)
-            </span>
-          </Button>
+          </button>
         </div>
 
-        {/* Value Proposition Pills */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-12 mt-16 pt-10 border-t border-ivory/10 w-full max-w-3xl text-left">
-          <div className="flex items-start gap-3">
-            <Flame className="w-5 h-5 text-ember shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-ivory">Live Ember Hearth</p>
-              <p className="text-xs text-ivory/50 font-light mt-0.5">
-                Almond wood & white oak smoke
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Leaf className="w-5 h-5 text-olive-light shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-ivory">Wild Foraged Botanicals</p>
-              <p className="text-xs text-ivory/50 font-light mt-0.5">
-                Spruce tip, sumac & pine ferments
-              </p>
-            </div>
-          </div>
-
-          <div className="col-span-2 md:col-span-1 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-ember shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-ivory">Intelligent Hospitality</p>
-              <p className="text-xs text-ivory/50 font-light mt-0.5">
-                Custom voice ordering in EN, HI, TE, ES, FR
-              </p>
-            </div>
-          </div>
+        {/* Refined Architectural Status Line */}
+        <div className="mt-16 pt-8 border-t border-ivory/10 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-ivory/50 tracking-wider uppercase font-light">
+          <span>Live Fruitwood Ember</span>
+          <span className="w-1 h-1 rounded-full bg-ember/60 hidden sm:inline-block" />
+          <span>Cold Foraged Botanicals</span>
+          <span className="w-1 h-1 rounded-full bg-ember/60 hidden sm:inline-block" />
+          <span>Table · Pickup · Delivery</span>
         </div>
       </div>
     </section>

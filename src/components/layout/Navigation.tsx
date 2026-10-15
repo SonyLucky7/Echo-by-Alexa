@@ -84,17 +84,16 @@ export const Navigation: React.FC<NavigationProps> = ({
           {/* Action Controls */}
           <div className="flex items-center gap-3">
             {/* Voice Concierge Button */}
-            <Button
-              variant="ember"
-              size="sm"
+            <button
+              type="button"
               onClick={onOpenVoice}
-              className="flex items-center gap-1.5 shadow-sm hover:shadow"
-              title="Speak with Alexa — Multilingual AI Dining Concierge"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-charcoal/15 bg-cream/60 hover:bg-cream text-charcoal text-xs font-medium tracking-wide transition-all duration-200"
+              title="Open Alexa Concierge"
             >
-              <Mic className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Speak with Alexa</span>
+              <Mic className="w-3.5 h-3.5 text-ember" />
+              <span className="hidden sm:inline">Concierge</span>
               <span className="sm:hidden">Alexa</span>
-            </Button>
+            </button>
 
             {/* Cart Trigger */}
             <button

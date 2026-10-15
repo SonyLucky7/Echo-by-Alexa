@@ -1,8 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/currency";
-import { Badge } from "@/components/ui/Badge";
-import { ArrowRight, Flame, Sparkles } from "lucide-react";
+import { ArrowRight, Flame } from "lucide-react";
 
 export interface FeaturedDishesProps {
   dishes: Array<{
@@ -24,23 +23,22 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
   const [leadDish, ...secondaryDishes] = dishes;
 
   return (
-    <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto text-left">
+    <section className="py-28 px-6 md:px-12 max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-olive mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Chef's Ember Curations</span>
-          </div>
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight text-charcoal">
-            Signature Hearth Creations
+          <span className="text-[11px] uppercase tracking-[0.25em] font-semibold text-olive mb-2 block">
+            Curated Selections
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-charcoal">
+            Signature Hearth Dishes
           </h2>
         </div>
         <Link
           href="/menu"
-          className="inline-flex items-center gap-2 text-sm font-medium text-ember hover:text-charcoal transition-colors group"
+          className="inline-flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-charcoal/80 hover:text-ember transition-colors group"
         >
-          <span>Explore Entire Catalog</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <span>View Full Menu</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
 
@@ -48,7 +46,7 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         {/* Lead Hero Dish (7 cols) */}
         {leadDish && (
-          <div className="lg:col-span-7 bg-cream/50 rounded-3xl p-8 border border-charcoal/10 flex flex-col justify-between group hover:shadow-card transition-all duration-300">
+          <div className="lg:col-span-7 bg-cream/40 rounded-3xl p-8 border border-charcoal/10 flex flex-col justify-between group hover:shadow-card transition-all duration-300">
             <div>
               <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden mb-8 bg-sand">
                 <img
@@ -57,10 +55,10 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute top-4 left-4 flex gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-charcoal text-ivory">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-semibold tracking-widest uppercase bg-charcoal text-ivory">
                     Signature
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium tracking-wider uppercase bg-ivory/90 backdrop-blur-sm text-olive">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-medium tracking-widest uppercase bg-ivory/90 backdrop-blur-sm text-olive">
                     {leadDish.category.name}
                   </span>
                 </div>
@@ -89,23 +87,23 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
               </div>
               <Link
                 href={`/menu?item=${leadDish.slug}`}
-                className="text-sm font-semibold text-charcoal hover:text-ember transition-colors inline-flex items-center gap-1.5"
+                className="text-xs uppercase tracking-wider font-semibold text-charcoal hover:text-ember transition-colors inline-flex items-center gap-1.5"
               >
                 <span>Customize & Order</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
         )}
 
         {/* Secondary Stacked Dishes (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-8 justify-between">
+        <div className="lg:col-span-5 flex flex-col gap-6 justify-between">
           {secondaryDishes.slice(0, 2).map((dish) => (
             <div
               key={dish.id}
               className="bg-cream/40 rounded-3xl p-6 border border-charcoal/10 flex flex-col sm:flex-row gap-6 group hover:shadow-card transition-all duration-300"
             >
-              <div className="relative aspect-square w-full sm:w-44 rounded-xl overflow-hidden shrink-0 bg-sand">
+              <div className="relative aspect-square w-full sm:w-40 rounded-xl overflow-hidden shrink-0 bg-sand">
                 <img
                   src={dish.imageUrl}
                   alt={dish.name}
@@ -116,7 +114,7 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
               <div className="flex flex-col justify-between flex-1">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs uppercase tracking-wider text-olive font-semibold">
+                    <span className="text-[10px] uppercase tracking-widest text-olive font-semibold">
                       {dish.category.name}
                     </span>
                     <span className="font-serif text-lg font-semibold text-charcoal">
@@ -128,14 +126,14 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
                     {dish.name}
                   </h4>
 
-                  <p className="text-charcoal/65 text-xs sm:text-sm line-clamp-2 font-light leading-relaxed mb-4">
+                  <p className="text-charcoal/65 text-xs font-light leading-relaxed mb-4 line-clamp-2">
                     {dish.description}
                   </p>
                 </div>
 
                 <Link
                   href={`/menu?item=${dish.slug}`}
-                  className="text-xs font-semibold uppercase tracking-wider text-charcoal hover:text-ember transition-colors inline-flex items-center gap-1 mt-auto"
+                  className="text-xs uppercase tracking-wider font-semibold text-charcoal hover:text-ember transition-colors inline-flex items-center gap-1 mt-auto"
                 >
                   <span>Select Plate</span>
                   <ArrowRight className="w-3.5 h-3.5" />

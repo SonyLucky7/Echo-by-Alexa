@@ -63,12 +63,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
                   : "bg-ivory border border-ivory-300 text-charcoal/90 rounded-tl-none shadow-sm"
               }`}
             >
-              {!isUser && (
-                <div className="flex items-center gap-1.5 text-xs text-charcoal/50 font-serif mb-1 uppercase tracking-wider">
-                  <Flame className="w-3 h-3 text-ember" />
-                  Alexa • Dining Concierge
-                </div>
-              )}
+
 
               <p className="whitespace-pre-wrap">{renderFormattedText(msg.content)}</p>
 

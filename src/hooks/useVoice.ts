@@ -18,6 +18,8 @@ export type VoiceState =
 export interface VoiceTranscriptItem {
   speaker: "user" | "alexa";
   text: string;
+  toolResults?: Array<{ tool: string; result: any }>;
+  suggestions?: string[];
   timestamp: Date;
 }
 
@@ -253,7 +255,13 @@ export function useVoice() {
 
       setTranscripts((prev) => [
         ...prev,
-        { speaker: "alexa", text: reply, timestamp: new Date() },
+        {
+          speaker: "alexa",
+          text: reply,
+          toolResults: data.toolResults || [],
+          suggestions: data.suggestions || [],
+          timestamp: new Date(),
+        },
       ]);
 
       // Check if cart was modified
@@ -365,6 +373,7 @@ export function useVoice() {
     startVoice,
     stopVoice,
     toggleMute,
+    sendMessage: handleUserUtterance,
     closeVoice: () => {
       stopVoice();
       setIsOpen(false);
