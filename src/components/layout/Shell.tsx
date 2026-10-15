@@ -4,6 +4,7 @@ import React from "react";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { ConciergePanel } from "@/components/concierge/ConciergePanel";
 import { useCart } from "@/hooks/useCart";
 
 export interface ShellProps {
@@ -27,6 +28,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />
+      <ConciergePanel />
     </div>
   );
 };
