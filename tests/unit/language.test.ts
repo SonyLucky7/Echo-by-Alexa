@@ -2,24 +2,27 @@ import { describe, it, expect } from "vitest";
 import { SUPPORTED_LANGUAGES } from "@/hooks/useLanguage";
 import { getPromptForLocale, CONCIERGE_PROMPTS } from "@/lib/concierge/prompts";
 
-describe("Concierge Multilingual System", () => {
-  it("supports all 5 requested languages: en, hi, te, es, fr", () => {
+describe("Concierge Language System", () => {
+  it("supports English as the dedicated voice language", () => {
     const codes = SUPPORTED_LANGUAGES.map((l) => l.code);
-    expect(codes).toEqual(["en", "hi", "te", "es", "fr"]);
+    expect(codes).toEqual(["en"]);
   });
 
-  it("each language has a distinct welcome greeting and system prompt", () => {
-    for (const code of ["en", "hi", "te", "es", "fr"]) {
-      const config = getPromptForLocale(code);
-      expect(config.locale).toBe(code);
-      expect(config.welcomeGreeting.length).toBeGreaterThan(20);
-      expect(config.systemPrompt.length).toBeGreaterThan(50);
-      expect(config.sampleQuestions.length).toBeGreaterThanOrEqual(3);
-    }
-  });
-
-  it("falls back to English when an unsupported locale is passed", () => {
-    const config = getPromptForLocale("de");
+  it("English has a distinct authentic welcome greeting and system prompt", () => {
+    const config = getPromptForLocale("en");
     expect(config.locale).toBe("en");
+    expect(config.welcomeGreeting.length).toBeGreaterThan(50);
+    expect(config.welcomeGreeting).toContain("Hello, and welcome to ECHO");
+    expect(config.systemPrompt.length).toBeGreaterThan(100);
+    expect(config.sampleQuestions.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("always resolves to English when any locale or undefined is passed", () => {
+    const config1 = getPromptForLocale("de");
+    expect(config1.locale).toBe("en");
+
+    const config2 = getPromptForLocale(undefined);
+    expect(config2.locale).toBe("en");
   });
 });
+

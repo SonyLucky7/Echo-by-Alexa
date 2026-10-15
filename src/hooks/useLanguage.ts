@@ -11,10 +11,6 @@ export interface LanguageOption {
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: "en", label: "English", nativeLabel: "English" },
-  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी" },
-  { code: "te", label: "Telugu", nativeLabel: "తెలుగు" },
-  { code: "es", label: "Spanish", nativeLabel: "Español" },
-  { code: "fr", label: "French", nativeLabel: "Français" },
 ];
 
 const STORAGE_KEY = "echo_preferred_locale";

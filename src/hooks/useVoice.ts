@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { RealAudioAnalyser } from "@/lib/voice/webaudio";
-import { useLanguage } from "./useLanguage";
 import { getPromptForLocale } from "@/lib/concierge/prompts";
 import { SupportedLocale } from "@/types";
 
@@ -24,7 +23,7 @@ export interface VoiceTranscriptItem {
 }
 
 export function useVoice() {
-  const { locale, setLocale } = useLanguage();
+  const locale: SupportedLocale = "en";
   const [isOpen, setIsOpen] = useState(false);
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [transcripts, setTranscripts] = useState<VoiceTranscriptItem[]>([]);
@@ -81,86 +80,7 @@ export function useVoice() {
     };
   }, []);
 
-  // Speak Alexa response using ElevenLabs TTS or Web Speech API fallback
-  const speakResponse = useCallback(
-    async (text: string, currentLocale: SupportedLocale) => {
-      setVoiceState("speaking");
-
-      // 1. Try ElevenLabs TTS route
-      try {
-        const resp = await fetch("/api/voice/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, locale: currentLocale }),
-        });
-
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const audioUrl = URL.createObjectURL(blob);
-          const audio = new Audio(audioUrl);
-          audioElementRef.current = audio;
-
-          if (analyserRef.current) {
-            analyserRef.current.attachAudioElement(audio);
-          }
-
-          audio.onended = () => {
-            setVoiceState("listening");
-            startListening();
-          };
-          audio.onerror = () => {
-            // Fallback to browser synthesis if audio decode fails
-            fallbackWebSpeech(text, currentLocale);
-          };
-
-          await audio.play();
-          return;
-        }
-      } catch (err) {
-        console.warn("ElevenLabs TTS unavailable, transitioning to Web Speech API:", err);
-      }
-
-      // 2. Web Speech API synthesis fallback
-      fallbackWebSpeech(text, currentLocale);
-    },
-    []
-  );
-
-  const fallbackWebSpeech = (text: string, currentLocale: SupportedLocale) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setVoiceState("listening");
-      startListening();
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Map locale to BCP 47 code
-    const localeMap: Record<SupportedLocale, string> = {
-      en: "en-US",
-      hi: "hi-IN",
-      te: "te-IN",
-      es: "es-ES",
-      fr: "fr-FR",
-    };
-    utterance.lang = localeMap[currentLocale] || "en-US";
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    utterance.onend = () => {
-      setVoiceState("listening");
-      startListening();
-    };
-    utterance.onerror = () => {
-      setVoiceState("listening");
-      startListening();
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Start speech recognition
+  // Start speech recognition in English only
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
 
@@ -168,7 +88,7 @@ export function useVoice() {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setErrorMessage("Voice recognition not supported in this browser. Please use text concierge.");
+      setErrorMessage("Voice recognition not supported in this browser. Please use text prompt.");
       setVoiceState("error");
       return;
     }
@@ -181,15 +101,7 @@ export function useVoice() {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-
-      const localeMap: Record<SupportedLocale, string> = {
-        en: "en-US",
-        hi: "hi-IN",
-        te: "te-IN",
-        es: "es-ES",
-        fr: "fr-FR",
-      };
-      recognition.lang = localeMap[locale] || "en-US";
+      recognition.lang = "en-US";
 
       recognition.onstart = () => {
         setVoiceState("listening");
@@ -210,7 +122,7 @@ export function useVoice() {
 
       recognition.onerror = (e: any) => {
         if (e.error !== "no-speech") {
-          console.warn("Speech recognition error:", e.error);
+          console.warn("Speech recognition notice:", e.error);
         }
       };
 
@@ -227,7 +139,75 @@ export function useVoice() {
     } catch (err) {
       console.warn("Speech recognition failed to start:", err);
     }
-  }, [locale, isMuted, voiceState]);
+  }, [isMuted, voiceState]);
+
+  // Fallback to browser synthesis if needed (English only)
+  const fallbackWebSpeech = useCallback((text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setVoiceState("listening");
+      startListening();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => {
+      setVoiceState("listening");
+      startListening();
+    };
+    utterance.onerror = () => {
+      setVoiceState("listening");
+      startListening();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }, [startListening]);
+
+  // Speak response using ElevenLabs TTS (English only)
+  const speakResponse = useCallback(
+    async (text: string) => {
+      setVoiceState("speaking");
+
+      try {
+        const resp = await fetch("/api/voice/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, locale: "en" }),
+        });
+
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audioElementRef.current = audio;
+
+          if (analyserRef.current) {
+            analyserRef.current.attachAudioElement(audio);
+          }
+
+          audio.onended = () => {
+            setVoiceState("listening");
+            startListening();
+          };
+          audio.onerror = () => {
+            fallbackWebSpeech(text);
+          };
+
+          await audio.play();
+          return;
+        }
+      } catch (err) {
+        console.warn("ElevenLabs TTS error, transitioning to Web Speech:", err);
+      }
+
+      fallbackWebSpeech(text);
+    },
+    [fallbackWebSpeech, startListening]
+  );
 
   // Handle transcribed user speech
   const handleUserUtterance = async (speech: string) => {
@@ -245,7 +225,7 @@ export function useVoice() {
       const res = await fetch("/api/concierge/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: speech, locale }),
+        body: JSON.stringify({ message: speech, locale: "en" }),
       });
 
       if (!res.ok) throw new Error("Concierge chat failed");
@@ -275,19 +255,19 @@ export function useVoice() {
         window.dispatchEvent(new CustomEvent("echo:cart-updated"));
       }
 
-      // Speak response aloud
-      speakResponse(reply, locale);
+      // Speak response aloud in English
+      speakResponse(reply);
     } catch (err: any) {
       const errReply = "I could not fully hear you. Could you please repeat that?";
       setTranscripts((prev) => [
         ...prev,
         { speaker: "alexa", text: errReply, timestamp: new Date() },
       ]);
-      speakResponse(errReply, locale);
+      speakResponse(errReply);
     }
   };
 
-  // Start voice session
+  // Start voice session with authentic welcome audio
   const startVoice = async () => {
     setVoiceState("connecting");
     setErrorMessage(null);
@@ -304,8 +284,8 @@ export function useVoice() {
         analyserRef.current.attachStream(stream);
       }
 
-      // 3. Welcome user with localized greeting
-      const promptConfig = getPromptForLocale(locale);
+      // 3. Welcome user with authentic voice audio
+      const promptConfig = getPromptForLocale("en");
       setTranscripts([
         {
           speaker: "alexa",
@@ -314,11 +294,40 @@ export function useVoice() {
         },
       ]);
 
-      speakResponse(promptConfig.welcomeGreeting, locale);
+      setVoiceState("speaking");
+      const audio = new Audio("/audio/welcome.mp3");
+      audioElementRef.current = audio;
+
+      if (analyserRef.current) {
+        analyserRef.current.attachAudioElement(audio);
+      }
+
+      audio.onended = () => {
+        setVoiceState("listening");
+        startListening();
+      };
+
+      audio.onerror = () => {
+        // Fallback to ElevenLabs TTS if file cannot load
+        speakResponse(promptConfig.welcomeGreeting);
+      };
+
+      await audio.play();
     } catch (err: any) {
-      console.error("Microphone access denied or audio initialization failed:", err);
-      setErrorMessage("Microphone access was denied. Please allow microphone permissions or use text concierge.");
-      setVoiceState("error");
+      console.error("Microphone access or audio init error:", err);
+      // Even if mic is denied, still play greeting so user hears the voice
+      const promptConfig = getPromptForLocale("en");
+      setTranscripts([
+        {
+          speaker: "alexa",
+          text: promptConfig.welcomeGreeting,
+          timestamp: new Date(),
+        },
+      ]);
+      const audio = new Audio("/audio/welcome.mp3");
+      audioElementRef.current = audio;
+      audio.play().catch(() => {});
+      setVoiceState("idle");
     }
   };
 
@@ -369,7 +378,6 @@ export function useVoice() {
     isMuted,
     errorMessage,
     locale,
-    setLocale,
     startVoice,
     stopVoice,
     toggleMute,

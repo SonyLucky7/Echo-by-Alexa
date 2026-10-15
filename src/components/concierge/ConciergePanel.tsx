@@ -5,7 +5,6 @@ import { Sparkles, X, Flame } from "lucide-react";
 import { useConcierge } from "@/hooks/useConcierge";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
-import { LanguageSelector } from "./LanguageSelector";
 
 export const ConciergePanel: React.FC = () => {
   const {
@@ -81,15 +80,6 @@ export const ConciergePanel: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
-
-          {/* Subheader Language Selector */}
-          <div className="px-4 py-2.5 bg-ivory-50 border-b border-ivory-200 flex items-center justify-between text-xs">
-            <span className="text-charcoal/60 font-serif italic flex items-center gap-1">
-              <Flame className="w-3 h-3 text-ember" />
-              Language:
-            </span>
-            <LanguageSelector />
           </div>
 
           {/* Chat Messages */}

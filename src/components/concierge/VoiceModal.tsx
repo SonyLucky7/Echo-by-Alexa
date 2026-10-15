@@ -15,7 +15,6 @@ import {
   Volume2,
 } from "lucide-react";
 import { useVoice } from "@/hooks/useVoice";
-import { LanguageSelector } from "./LanguageSelector";
 import { EmberOrbVisualizer } from "./EmberOrbVisualizer";
 import { AlexaCards } from "./AlexaCards";
 
@@ -121,8 +120,6 @@ export const VoiceModal: React.FC = () => {
             <span className="font-mono text-xs sm:text-sm font-medium tracking-tight">
               {currentTime || "7:15 PM"}
             </span>
-
-            <LanguageSelector />
 
             <button
               type="button"
