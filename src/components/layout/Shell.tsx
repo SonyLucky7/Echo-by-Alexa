@@ -5,6 +5,7 @@ import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ConciergePanel } from "@/components/concierge/ConciergePanel";
+import { VoiceModal } from "@/components/concierge/VoiceModal";
 import { useCart } from "@/hooks/useCart";
 
 export interface ShellProps {
@@ -29,6 +30,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       <Footer />
       <CartDrawer />
       <ConciergePanel />
+      <VoiceModal />
     </div>
   );
 };
