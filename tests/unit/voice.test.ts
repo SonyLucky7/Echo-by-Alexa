@@ -3,9 +3,9 @@ import { getConfig } from "@/lib/config";
 import { RealAudioAnalyser } from "@/lib/voice/webaudio";
 
 describe("Voice AI Subsystem (ElevenLabs & WebAudio)", () => {
-  it("configures ElevenLabs Voice ID to sXSV9RZ095VZyL64w3ap by default", () => {
+  it("configures ElevenLabs Voice ID to tm4rC0Q4St1T4Nq6wyLZ", () => {
     const config = getConfig();
-    expect(config.elevenLabsVoiceId).toBe("sXSV9RZ095VZyL64w3ap");
+    expect(config.elevenLabsVoiceId).toBe("tm4rC0Q4St1T4Nq6wyLZ");
   });
 
   it("RealAudioAnalyser produces 16 normalized frequency bins", () => {

@@ -19,24 +19,32 @@ export const ConciergePanel: React.FC = () => {
 
   return (
     <>
-      {/* Floating Concierge Launch Button */}
+      {/* Floating Animated AI Emoji Orb (No text, pure kinetic luxury talisman) */}
       {!isOpen && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2.5 bg-charcoal text-ivory px-4 py-3 rounded-full shadow-2xl border border-ivory/15 hover:border-ember/50 transition-all duration-300 hover:scale-[1.03] active:scale-95"
-          aria-label="Open Dining Concierge"
-        >
-          <div className="relative">
-            <div className="w-6 h-6 rounded-full bg-forest flex items-center justify-center text-ember">
-              <Sparkles className="w-3.5 h-3.5" />
+        <div className="fixed bottom-6 right-6 z-40 animate-orb-float">
+          {/* Ambient Diffused Golden Glow */}
+          <div className="absolute inset-0 rounded-full bg-ember/40 blur-xl animate-orb-breathe pointer-events-none" />
+
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="relative w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-charcoal via-[#1C1612] to-charcoal border border-ember/40 shadow-[0_0_30px_rgba(197,143,88,0.45)] hover:shadow-[0_0_45px_rgba(197,143,88,0.7)] flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group overflow-hidden"
+            aria-label="Open AI Assistant"
+          >
+            {/* Swirling Kinetic Background Ring */}
+            <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-ember/30 via-ember-light/20 to-transparent animate-orb-swirl blur-[2px]" />
+
+            {/* Glowing Flame / Sparkle Emoji Core */}
+            <div className="relative z-10 flex items-center justify-center">
+              <span className="text-2xl sm:text-3xl filter drop-shadow-[0_0_10px_rgba(230,181,135,0.8)] group-hover:scale-115 transition-transform duration-300">
+                ✨
+              </span>
             </div>
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-ember rounded-full" />
-          </div>
-          <span className="text-xs font-medium tracking-wider uppercase text-ivory/90 pr-1">
-            Concierge
-          </span>
-        </button>
+
+            {/* Micro Live Status Pulse */}
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-ember shadow-[0_0_6px_#C58F58]" />
+          </button>
+        </div>
       )}
 
       {/* Floating Concierge Chat Window */}
@@ -50,13 +58,15 @@ export const ConciergePanel: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-serif font-medium text-base text-ivory">Alexa</h3>
+                  <h3 className="font-serif font-medium text-base text-ivory">
+                    Dining Assistant
+                  </h3>
                   <span className="text-[10px] bg-ember/20 text-ember px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">
-                    Concierge
+                    AI Concierge
                   </span>
                 </div>
                 <p className="text-xs text-ivory/60 font-sans">
-                  Progressive Global Hearth & Botanicals
+                  Progressive Hearth & Botanicals
                 </p>
               </div>
             </div>

@@ -51,16 +51,16 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
         const { tool, result } = tr;
         if (!result || result.error) return null;
 
-        // 1. Table Reservation Flow (matches video 00:23 - 00:29)
+        // 1. Table Reservation Flow (matches video 00:23 - 00:29 in website colors)
         if (tool === "book_table" || result.type === "reservation" || result.availableSlots) {
           return (
             <div
               key={index}
-              className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-5 shadow-2xl text-ivory animate-in fade-in slide-in-from-bottom-2 duration-300"
+              className="bg-cream/5 backdrop-blur-xl border border-ember/20 rounded-2xl p-5 shadow-2xl text-ivory animate-in fade-in slide-in-from-bottom-2 duration-300"
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                 <div className="flex items-center gap-3.5">
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-white/20">
+                  <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-ember/30">
                     <img
                       src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80"
                       alt="ECHO Hearthstone Dining Room"
@@ -69,17 +69,17 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs uppercase tracking-widest text-cyan-400 font-mono font-medium">
-                        OpenTable Dining
+                      <span className="text-xs uppercase tracking-widest text-ember-light font-mono font-medium">
+                        Hearth Reservations
                       </span>
-                      <span className="text-xs text-white/50">Tonight · Friday</span>
+                      <span className="text-xs text-white/50">Tonight · Evening Seating</span>
                     </div>
                     <h4 className="font-serif text-lg font-medium text-ivory">
                       ECHO Hearthstone Dining Room
                     </h4>
                     <p className="text-xs text-ivory/60 flex items-center gap-1.5 mt-0.5">
                       <MapPin className="w-3.5 h-3.5 text-ember shrink-0" />
-                      <span>448 Hearthstone Way · 5.0 ★ (438 reviews)</span>
+                      <span>448 Hearthstone Way · 5.0 ★ Sanctuary Seating</span>
                     </p>
                   </div>
                 </div>
@@ -92,7 +92,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                 )}
               </div>
 
-              {/* Time Slot Selector Pills (exactly like video 00:26) */}
+              {/* Time Slot Selector Pills in Website Colors */}
               <div className="pt-4">
                 <p className="text-xs text-ivory/70 mb-3 font-light">
                   Select preferred dinner seating:
@@ -107,7 +107,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                         onClick={() => handleBookSlot(slot)}
                         className={`px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all duration-200 ${
                           isSelected
-                            ? "bg-cyan-400 text-charcoal font-semibold shadow-[0_0_15px_rgba(0,202,255,0.6)]"
+                            ? "bg-ember text-charcoal font-semibold shadow-[0_0_15px_rgba(197,143,88,0.7)]"
                             : "bg-white/10 hover:bg-white/20 text-ivory border border-white/10"
                         }`}
                       >
@@ -115,7 +115,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                       </button>
                     );
                   })}
-                  <span className="text-[11px] text-cyan-400 hover:underline cursor-pointer pl-2">
+                  <span className="text-[11px] text-ember-light hover:underline cursor-pointer pl-2">
                     Show more times
                   </span>
                 </div>
@@ -124,7 +124,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
           );
         }
 
-        // 2. Menu Recommendation / Browse Cards (matches video 00:10 & 00:39)
+        // 2. Menu Recommendation Cards in Website Colors (matches Image 1 & 2)
         if (tool === "browse_menu" || tool === "recommend_items") {
           let items: any[] = [];
           if (Array.isArray(result)) {
@@ -161,7 +161,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3 flex flex-col justify-between hover:border-cyan-400/50 hover:bg-white/15 transition-all duration-300 shadow-lg group"
+                      className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-between hover:border-ember/50 hover:bg-white/10 transition-all duration-300 shadow-lg group"
                     >
                       <div>
                         {item.imageUrl && (
@@ -183,7 +183,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                           <h5 className="font-serif font-medium text-sm text-ivory line-clamp-1">
                             {item.name}
                           </h5>
-                          <span className="text-xs font-mono font-semibold text-cyan-400 shrink-0">
+                          <span className="text-xs font-mono font-semibold text-ember-light shrink-0">
                             {price}
                           </span>
                         </div>
@@ -199,7 +199,7 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
                         className={`w-full py-2 px-3 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
                           isAdded
                             ? "bg-emerald-500 text-white"
-                            : "bg-cyan-500 hover:bg-cyan-400 text-charcoal font-semibold shadow-[0_0_12px_rgba(0,202,255,0.4)]"
+                            : "bg-ember hover:bg-ember-light text-charcoal font-semibold shadow-[0_0_12px_rgba(197,143,88,0.4)]"
                         }`}
                       >
                         {isAdded ? (
@@ -222,15 +222,15 @@ export const AlexaCards: React.FC<AlexaCardsProps> = ({
           );
         }
 
-        // 3. Order Status / Kitchen Flow
+        // 3. Order Status / Kitchen Flow in Website Colors
         if (tool === "check_order_status" || result.orderRef) {
           return (
             <div
               key={index}
-              className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 text-ivory space-y-3"
+              className="bg-white/5 backdrop-blur-md border border-ember/20 rounded-2xl p-4 text-ivory space-y-3"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-widest text-cyan-400 font-mono">
+                <span className="text-xs uppercase tracking-widest text-ember-light font-mono">
                   Order Status · Ref #{result.orderRef || "ECH-8492"}
                 </span>
                 <span className="text-xs font-medium bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
