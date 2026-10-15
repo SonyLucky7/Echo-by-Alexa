@@ -33,6 +33,47 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-ivory text-charcoal selection:bg-ember/20 selection:text-charcoal flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Restaurant",
+              name: "ECHO",
+              description:
+                "Progressive Global Hearth & Botanicals. Fine dining celebrating live fruitwood fire, heirloom grains, and hyper-seasonal wild botanicals.",
+              image: "https://images.unsplash.com/photo-1544025162-d76694265947",
+              servesCuisine: ["Progressive Hearth", "Botanical Gastronomy", "Wood-Fired"],
+              priceRange: "$$$$",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "448 Hearthstone Way",
+                addressLocality: "Artisan District",
+                addressRegion: "CA",
+                postalCode: "94107",
+                addressCountry: "US",
+              },
+              telephone: "+1 (555) 324-6324",
+              acceptsReservations: "True",
+              hasMenu: "https://echo-restaurant.com/menu",
+              openingHoursSpecification: [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  dayOfWeek: [
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                  ],
+                  opens: "17:00",
+                  closes: "23:00",
+                },
+              ],
+            }),
+          }}
+        />
         <Shell>{children}</Shell>
       </body>
     </html>
