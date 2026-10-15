@@ -1,0 +1,300 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model RestaurantSettings {
+  id                   String   @id @default(uuid())
+  name                 String   @default("ECHO")
+  tagline              String   @default("Wild Botanicals & Open Hearth Gastronomy")
+  story                String
+  baseCurrency         String   @default("USD")
+  taxRateBps           Int      @default(825) // 8.25%
+  deliveryFeeMinor     Int      @default(500) // $5.00
+  packagingFeeMinor    Int      @default(200) // $2.00
+  fulfillmentModes     String   @default("[\"DINE_IN\",\"PICKUP\",\"DELIVERY\"]") // JSON array
+  openingHours         String   // JSON schedule
+  address              String   @default("448 Hearthstone Way, Artisan District")
+  phone                String   @default("+1 (555) 324-6324")
+  email                String   @default("concierge@echo-restaurant.com")
+  deliveryZones        String   @default("[]") // JSON array of zones
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model MenuCategory {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  name        String
+  description String?
+  sortOrder   Int        @default(0)
+  imageUrl    String?
+  items       MenuItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model MenuItem {
+  id                  String                @id @default(uuid())
+  categoryId          String
+  category            MenuCategory          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  slug                String                @unique
+  name                String
+  description         String
+  basePriceMinor      Int                   // Integer minor units (cents)
+  spiceLevel          Int                   @default(0) // 0-3
+  cookingTechnique    String                @default("HEARTH_FIRE")
+  dietaryFlags        String                @default("[]") // JSON array: ["VEGETARIAN", "GLUTEN_FREE", etc.]
+  prepTimeMinutes     Int                   @default(15)
+  isAvailable         Boolean               @default(true)
+  isFeatured          Boolean               @default(false)
+  isSignature         Boolean               @default(false)
+  imageUrl            String
+  sortOrder           Int                   @default(0)
+  variants            MenuItemVariant[]
+  customizationGroups CustomizationGroup[]
+  allergens           MenuItemAllergen[]
+  translations        MenuItemTranslation[]
+  cartItems           CartItem[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([categoryId])
+  @@index([isAvailable])
+  @@index([isFeatured])
+}
+
+model MenuItemTranslation {
+  id              String   @id @default(uuid())
+  itemId          String
+  item            MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  locale          String   // 'en', 'hi', 'te', 'es', 'fr'
+  name            String
+  description     String
+  ingredientsText String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([itemId, locale])
+  @@index([locale])
+}
+
+model MenuItemVariant {
+  id         String     @id @default(uuid())
+  itemId     String
+  item       MenuItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name       String     // e.g., "Tasting Portion", "Full Hearth Portion"
+  priceMinor Int        // Absolute price in minor units
+  isDefault  Boolean    @default(false)
+  cartItems  CartItem[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([itemId])
+}
+
+model CustomizationGroup {
+  id            String                @id @default(uuid())
+  itemId        String
+  item          MenuItem              @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name          String                // e.g., "Choose Ancient Grain", "Dietary Removals"
+  minSelections Int                   @default(0)
+  maxSelections Int                   @default(1)
+  isRequired    Boolean               @default(false)
+  options       CustomizationOption[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([itemId])
+}
+
+model CustomizationOption {
+  id                   String                  @id @default(uuid())
+  groupId              String
+  group                CustomizationGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name                 String                  // e.g., "Wild Ember Quinoa", "No Alliums"
+  priceDeltaMinor      Int                     @default(0) // Additive price delta in minor units
+  isAvailable          Boolean                 @default(true)
+  isDefault            Boolean                 @default(false)
+  cartItemCustomizations CartItemCustomization[]
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  @@index([groupId])
+}
+
+model MenuItemAllergen {
+  id        String   @id @default(uuid())
+  itemId    String
+  item      MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  allergen  String   // "GLUTEN", "DAIRY", "NUTS", "SHELLFISH", "SOY", "EGGS"
+  createdAt DateTime @default(now())
+
+  @@unique([itemId, allergen])
+  @@index([itemId])
+}
+
+model GuestSession {
+  id            String         @id @default(uuid())
+  cart          Cart?
+  orders        Order[]
+  conversations Conversation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Profile {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  fullName      String?
+  phone         String?
+  preferredLang String         @default("en")
+  cart          Cart?
+  orders        Order[]
+  conversations Conversation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Cart {
+  id             String        @id @default(uuid())
+  guestSessionId String?       @unique
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  profileId      String?       @unique
+  profile        Profile?      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  items          CartItem[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model CartItem {
+  id             String                  @id @default(uuid())
+  cartId         String
+  cart           Cart                    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  itemId         String
+  item           MenuItem                @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  variantId      String?
+  variant        MenuItemVariant?        @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  quantity       Int                     @default(1)
+  customizations CartItemCustomization[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([cartId])
+  @@index([itemId])
+}
+
+model CartItemCustomization {
+  id         String              @id @default(uuid())
+  cartItemId String
+  cartItem   CartItem            @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  optionId   String
+  option     CustomizationOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime            @default(now())
+
+  @@index([cartItemId])
+}
+
+model Order {
+  id                 String             @id @default(uuid())
+  orderRef           String             @unique // e.g. "ECHO-8942"
+  guestSessionId     String?
+  guestSession       GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: SetNull)
+  profileId          String?
+  profile            Profile?           @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  customerName       String
+  customerEmail      String?
+  customerPhone      String?
+  fulfillmentMode    String             // DINE_IN, PICKUP, DELIVERY
+  fulfillmentDetails String             // JSON string
+  currency           String             @default("USD")
+  subtotalMinor      Int
+  taxMinor           Int
+  deliveryFeeMinor   Int                @default(0)
+  packagingFeeMinor  Int                @default(0)
+  totalMinor         Int
+  paymentStatus      String             @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  fulfillmentStatus  String             @default("PENDING_PAYMENT") // PENDING_PAYMENT, CONFIRMED, ACCEPTED, PREPARING, READY, OUT_FOR_DELIVERY, COMPLETED, CANCELLED
+  items              OrderItem[]
+  statusEvents       OrderStatusEvent[]
+  payment            Payment?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([orderRef])
+  @@index([guestSessionId])
+  @@index([fulfillmentStatus])
+  @@index([paymentStatus])
+}
+
+model OrderItem {
+  id                     String   @id @default(uuid())
+  orderId                String
+  order                  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemName               String
+  variantName            String?
+  customizationsSnapshot String   @default("[]") // JSON snapshot of applied modifications & price deltas
+  quantity               Int
+  unitPriceMinor         Int
+  totalPriceMinor        Int
+  createdAt              DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model OrderStatusEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  changedBy String   @default("system") // "system", "staff", "customer"
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                 String   @id @default(uuid())
+  orderId            String   @unique
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider           String   @default("STRIPE") // "STRIPE", "SANDBOX"
+  providerSessionId  String?
+  providerPaymentId  String?
+  amountMinor        Int
+  currency           String   @default("USD")
+  status             String   @default("PENDING") // PENDING, SUCCEEDED, FAILED, REFUNDED
+  webhookEventId     String?  @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Conversation {
+  id             String                @id @default(uuid())
+  guestSessionId String?
+  guestSession   GuestSession?         @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  profileId      String?
+  profile        Profile?              @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  locale         String                @default("en")
+  messages       ConversationMessage[]
+  preferences    String                @default("{}") // JSON string of stated preferences
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+model ConversationMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // "user", "assistant", "system"
+  content        String
+  toolCalls      String?      // JSON string of tool calls
+  toolResults    String?      // JSON string of tool responses
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
