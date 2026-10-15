@@ -1,27 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { useCart } from "@/hooks/useCart";
 
 export interface ShellProps {
   children: React.ReactNode;
 }
 
 export const Shell: React.FC<ShellProps> = ({ children }) => {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-
-  // Expose callbacks via window events or global state
-  useEffectEvent((eventName: string, handler: () => void) => {
-    // helpers
-  });
+  const { itemCount } = useCart();
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <Navigation
-        cartCount={cartCount}
+        cartCount={itemCount}
         onOpenCart={() => {
           window.dispatchEvent(new CustomEvent("echo:open-cart"));
         }}
@@ -31,10 +26,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       />
       <main className="flex-1">{children}</main>
       <Footer />
+      <CartDrawer />
     </div>
   );
 };
-
-function useEffectEvent(fn: (name: string, handler: () => void) => void) {
-  // placeholder helper
-}
