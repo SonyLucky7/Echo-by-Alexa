@@ -7,6 +7,7 @@ const VALID_TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
   ],
   [FulfillmentStatus.CONFIRMED]: [
     FulfillmentStatus.ACCEPTED,
+    FulfillmentStatus.PREPARING,
     FulfillmentStatus.CANCELLED,
   ],
   [FulfillmentStatus.ACCEPTED]: [
@@ -18,7 +19,10 @@ const VALID_TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
     FulfillmentStatus.OUT_FOR_DELIVERY,
     FulfillmentStatus.CANCELLED,
   ],
-  [FulfillmentStatus.READY]: [FulfillmentStatus.COMPLETED],
+  [FulfillmentStatus.READY]: [
+    FulfillmentStatus.COMPLETED,
+    FulfillmentStatus.OUT_FOR_DELIVERY,
+  ],
   [FulfillmentStatus.OUT_FOR_DELIVERY]: [FulfillmentStatus.COMPLETED],
   [FulfillmentStatus.COMPLETED]: [],
   [FulfillmentStatus.CANCELLED]: [],
