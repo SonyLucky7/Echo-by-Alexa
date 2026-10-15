@@ -280,14 +280,19 @@ export const tools: Record<string, ToolDefinition> = {
         quantity: args.quantity || 1,
       });
 
+      const summary = {
+        itemCount: cart.itemCount,
+        subtotal: `$${(cart.subtotalMinor / 100).toFixed(2)}`,
+        total: `$${(cart.totalMinor / 100).toFixed(2)}`,
+        formattedSubtotal: `$${(cart.subtotalMinor / 100).toFixed(2)}`,
+        formattedTotal: `$${(cart.totalMinor / 100).toFixed(2)}`,
+      };
+
       return {
         success: true,
         message: `Added ${args.quantity}x ${item.name} to your cart.`,
-        cartSummary: {
-          itemCount: cart.itemCount,
-          subtotal: `$${(cart.subtotalMinor / 100).toFixed(2)}`,
-          total: `$${(cart.totalMinor / 100).toFixed(2)}`,
-        },
+        summary,
+        cartSummary: summary,
       };
     },
   },
@@ -404,6 +409,11 @@ export const tools: Record<string, ToolDefinition> = {
         deliveryFee: `$${(cart.deliveryFeeMinor / 100).toFixed(2)}`,
         packagingFee: `$${(cart.packagingFeeMinor / 100).toFixed(2)}`,
         totalDue: `$${(cart.totalMinor / 100).toFixed(2)}`,
+        summary: {
+          itemCount: cart.itemCount,
+          formattedTotal: `$${(cart.totalMinor / 100).toFixed(2)}`,
+          total: `$${(cart.totalMinor / 100).toFixed(2)}`,
+        },
         requiredFields:
           args.fulfillmentMode === "DINE_IN"
             ? ["customerName", "tableNumber"]

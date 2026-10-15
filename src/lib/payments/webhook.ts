@@ -29,6 +29,12 @@ export async function verifyAndProcessStripeWebhook(
     throw new Error(`Webhook signature verification failed: ${err.message}`);
   }
 
+  return processStripeWebhookEvent(event);
+}
+
+export async function processStripeWebhookEvent(
+  event: Stripe.Event | any
+): Promise<{ processed: boolean; duplicate?: boolean; orderRef?: string }> {
   // Idempotency check: see if this event has already been recorded
   const existingPayment = await db.payment.findUnique({
     where: { webhookEventId: event.id },
@@ -36,7 +42,7 @@ export async function verifyAndProcessStripeWebhook(
 
   if (existingPayment) {
     // Event was already processed idempotently
-    return { processed: true };
+    return { processed: true, duplicate: true };
   }
 
   if (event.type === "checkout.session.completed") {
