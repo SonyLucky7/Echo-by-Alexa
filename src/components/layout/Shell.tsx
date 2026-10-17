@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { ConciergePanel } from "@/components/concierge/ConciergePanel";
 import { VoiceModal } from "@/components/concierge/VoiceModal";
 import { useCart } from "@/hooks/useCart";
 
@@ -32,7 +31,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       <main className={`flex-1 ${!isHome ? "pt-20" : ""}`}>{children}</main>
       <Footer />
       <CartDrawer />
-      <ConciergePanel />
       <VoiceModal />
     </div>
   );
