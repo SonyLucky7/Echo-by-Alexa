@@ -10,14 +10,14 @@ import { CTASection } from "@/components/home/CTASection";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // Fetch featured dishes from Prisma
+  // Fetch featured dishes from Prisma (flagship main + 3 complementary plates)
   const featuredDishes = await db.menuItem.findMany({
     where: { isFeatured: true },
     include: {
       category: { select: { name: true } },
     },
-    orderBy: { sortOrder: "asc" },
-    take: 3,
+    orderBy: [{ isSignature: "desc" }, { basePriceMinor: "desc" }],
+    take: 4,
   });
 
   // Fetch categories with counts

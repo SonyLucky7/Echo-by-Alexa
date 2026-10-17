@@ -31,13 +31,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
-        {/* Subtle Restrained Eyebrow */}
-        <div className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-full border border-ivory/15 bg-ivory/5 backdrop-blur-md mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-ember animate-pulse" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-ivory/80 font-medium">
-            Progressive Hearth & Botanicals
-          </span>
-        </div>
 
         {/* Headline: Max 2 Lines, High Editorial Polish */}
         <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ivory leading-[1.1] mb-6 max-w-3xl text-balance">

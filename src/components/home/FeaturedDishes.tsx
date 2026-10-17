@@ -96,14 +96,14 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
           </div>
         )}
 
-        {/* Secondary Stacked Dishes (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-6 justify-between">
-          {secondaryDishes.slice(0, 2).map((dish) => (
+        {/* Secondary Stacked Dishes (5 cols) - Fills right side completely */}
+        <div className="lg:col-span-5 flex flex-col gap-4 sm:gap-5 justify-between">
+          {secondaryDishes.map((dish) => (
             <div
               key={dish.id}
-              className="bg-cream/40 rounded-3xl p-6 border border-charcoal/10 flex flex-col sm:flex-row gap-6 group hover:shadow-card transition-all duration-300"
+              className="bg-cream/40 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-charcoal/10 flex flex-col sm:flex-row gap-4 sm:gap-5 group hover:shadow-card hover:border-charcoal/20 transition-all duration-300"
             >
-              <div className="relative aspect-square w-full sm:w-40 rounded-xl overflow-hidden shrink-0 bg-sand">
+              <div className="relative aspect-[4/3] sm:aspect-square w-full sm:w-32 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-sand">
                 <img
                   src={dish.imageUrl}
                   alt={dish.name}
@@ -111,22 +111,22 @@ export const FeaturedDishes: React.FC<FeaturedDishesProps> = ({ dishes }) => {
                 />
               </div>
 
-              <div className="flex flex-col justify-between flex-1">
+              <div className="flex flex-col justify-between flex-1 min-w-0">
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[10px] uppercase tracking-widest text-olive font-semibold">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[10px] uppercase tracking-widest text-olive font-semibold truncate">
                       {dish.category.name}
                     </span>
-                    <span className="font-serif text-lg font-semibold text-charcoal">
+                    <span className="font-serif text-base sm:text-lg font-semibold text-charcoal shrink-0">
                       {formatCurrency(dish.basePriceMinor, "USD")}
                     </span>
                   </div>
 
-                  <h4 className="font-serif text-xl font-medium text-charcoal mb-2">
+                  <h4 className="font-serif text-lg sm:text-xl font-medium text-charcoal mb-1.5 leading-snug group-hover:text-ember transition-colors">
                     {dish.name}
                   </h4>
 
-                  <p className="text-charcoal/65 text-xs font-light leading-relaxed mb-4 line-clamp-2">
+                  <p className="text-charcoal/65 text-xs font-light leading-relaxed mb-3 line-clamp-2">
                     {dish.description}
                   </p>
                 </div>
