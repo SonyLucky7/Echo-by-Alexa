@@ -75,11 +75,18 @@ describe("AI Concierge Tools & Engine", () => {
   });
 
   it("maintains conversation context and persistence", async () => {
-    const conv = await getOrCreateConversation(testSession.sessionId, "en");
+    const isolateSessionId = `test-persist-${Date.now()}`;
+    await db.guestSession.upsert({
+      where: { id: isolateSessionId },
+      update: {},
+      create: { id: isolateSessionId, cart: { create: {} } },
+    });
+
+    const conv = await getOrCreateConversation(isolateSessionId, "en");
     expect(conv).toHaveProperty("conversationId");
 
     await recordMessage(conv.conversationId, "user", "What are the fire starters?");
-    const updated = await getOrCreateConversation(testSession.sessionId, "en");
+    const updated = await getOrCreateConversation(isolateSessionId, "en");
     expect(updated.recentMessages.length).toBeGreaterThan(0);
     expect(updated.recentMessages[updated.recentMessages.length - 1].content).toBe(
       "What are the fire starters?"

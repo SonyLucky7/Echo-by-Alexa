@@ -37,9 +37,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ${
           isHeroMode
-            ? "bg-charcoal/90 backdrop-blur-xl border-b border-white/10 py-4 text-ivory"
+            ? "bg-transparent border-b border-transparent py-5 text-ivory"
             : isScrolled
             ? "bg-ivory/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(22,22,22,0.06)] border-b border-ember/20 py-3 text-charcoal"
             : "bg-ivory/90 backdrop-blur-xl border-b border-charcoal/8 py-4 text-charcoal"
@@ -51,16 +51,13 @@ export const Navigation: React.FC<NavigationProps> = ({
             href="/"
             className="flex flex-col text-left group outline-none focus-visible:ring-2 focus-visible:ring-charcoal rounded"
           >
-            <div className="flex items-center gap-2">
-              <span
-                className={`font-serif text-2xl md:text-3xl tracking-[0.2em] font-semibold transition-colors ${
-                  isHeroMode ? "text-ivory group-hover:text-ember" : "text-charcoal group-hover:text-ember"
-                }`}
-              >
-                ECHO
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-ember shadow-[0_0_8px_#C58F58] animate-pulse -mt-0.5" />
-            </div>
+            <span
+              className={`font-serif text-2xl md:text-3xl tracking-[0.2em] font-semibold transition-colors ${
+                isHeroMode ? "text-ivory group-hover:text-ember" : "text-charcoal group-hover:text-ember"
+              }`}
+            >
+              ECHO
+            </span>
             <span
               className={`text-[9px] tracking-[0.25em] uppercase font-light -mt-0.5 hidden sm:block ${
                 isHeroMode ? "text-ivory/60" : "text-olive"
@@ -136,11 +133,12 @@ export const Navigation: React.FC<NavigationProps> = ({
             >
               <Mic className="w-3.5 h-3.5 text-ember-light" />
               <span className="hidden sm:inline">Speak</span>
-              {/* Micro Acoustic Waveform Animation */}
-              <div className="hidden sm:flex items-center gap-0.5 h-3">
-                <span className="w-0.5 h-2 bg-ember-light rounded-full animate-wave-1" />
-                <span className="w-0.5 h-3 bg-ember rounded-full animate-wave-2" />
-                <span className="w-0.5 h-1.5 bg-ember-light rounded-full animate-wave-1" />
+              {/* Dynamic Live Equalizer / Music Beat Lines */}
+              <div className="flex items-center gap-[2.5px] h-4.5 px-0.5" aria-hidden="true">
+                <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-1" />
+                <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-2" />
+                <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-3" />
+                <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-4" />
               </div>
             </button>
 

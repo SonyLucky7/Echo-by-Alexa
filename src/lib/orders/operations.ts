@@ -31,9 +31,10 @@ export async function createOrderFromCart(
     throw new Error("Your cart is empty. Please select menu items before checkout.");
   }
 
-  // Generate unique order reference
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  const orderRef = `ECHO-${randomSuffix}`;
+  // Generate unique order reference (collision-safe timestamp + random)
+  const timeCode = (Date.now() % 1000000).toString().padStart(6, "0");
+  const randomSuffix = Math.floor(100 + Math.random() * 900);
+  const orderRef = `ECHO-${timeCode}${randomSuffix}`;
 
   // Package fulfillment details into JSON
   const fulfillmentDetails = JSON.stringify({

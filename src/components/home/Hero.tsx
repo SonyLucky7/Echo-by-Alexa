@@ -18,7 +18,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center px-6 md:px-12 py-24 overflow-hidden bg-charcoal text-ivory">
+    <section className="relative min-h-screen flex items-center justify-center px-6 md:px-12 pt-24 pb-16 overflow-hidden bg-charcoal text-ivory">
       {/* Background Photography with Atmospheric Vignette */}
       <div className="absolute inset-0 z-0">
         <img
@@ -58,10 +58,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
           <button
             type="button"
             onClick={handleVoiceClick}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/15 hover:border-ivory/30 text-ivory text-sm font-medium tracking-wide transition-all duration-200"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/15 hover:border-ivory/30 text-ivory text-sm font-medium tracking-wide transition-all duration-200 group"
           >
-            <Mic className="w-4 h-4 text-ember" />
+            <Mic className="w-4 h-4 text-ember group-hover:scale-110 transition-transform" />
             <span>Speak</span>
+            <div className="flex items-center gap-[2.5px] h-4.5 px-0.5" aria-hidden="true">
+              <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-1" />
+              <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-2" />
+              <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-3" />
+              <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-4" />
+            </div>
           </button>
         </div>
 

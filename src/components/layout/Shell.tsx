@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -14,6 +15,8 @@ export interface ShellProps {
 
 export const Shell: React.FC<ShellProps> = ({ children }) => {
   const { itemCount } = useCart();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
@@ -26,7 +29,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           window.dispatchEvent(new CustomEvent("echo:open-voice"));
         }}
       />
-      <main className="flex-1">{children}</main>
+      <main className={`flex-1 ${!isHome ? "pt-20" : ""}`}>{children}</main>
       <Footer />
       <CartDrawer />
       <ConciergePanel />
