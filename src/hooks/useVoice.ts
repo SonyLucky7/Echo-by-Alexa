@@ -15,7 +15,7 @@ export type VoiceState =
   | "error";
 
 export interface VoiceTranscriptItem {
-  speaker: "user" | "alexa";
+  speaker: "user" | "concierge" | "alexa";
   text: string;
   toolResults?: Array<{ tool: string; result: any }>;
   suggestions?: string[];
@@ -236,7 +236,7 @@ export function useVoice() {
       setTranscripts((prev) => [
         ...prev,
         {
-          speaker: "alexa",
+          speaker: "concierge",
           text: reply,
           toolResults: data.toolResults || [],
           suggestions: data.suggestions || [],
@@ -261,7 +261,7 @@ export function useVoice() {
       const errReply = "I could not fully hear you. Could you please repeat that?";
       setTranscripts((prev) => [
         ...prev,
-        { speaker: "alexa", text: errReply, timestamp: new Date() },
+        { speaker: "concierge", text: errReply, timestamp: new Date() },
       ]);
       speakResponse(errReply);
     }
@@ -288,7 +288,7 @@ export function useVoice() {
       const promptConfig = getPromptForLocale("en");
       setTranscripts([
         {
-          speaker: "alexa",
+          speaker: "concierge",
           text: promptConfig.welcomeGreeting,
           timestamp: new Date(),
         },
@@ -319,7 +319,7 @@ export function useVoice() {
       const promptConfig = getPromptForLocale("en");
       setTranscripts([
         {
-          speaker: "alexa",
+          speaker: "concierge",
           text: promptConfig.welcomeGreeting,
           timestamp: new Date(),
         },

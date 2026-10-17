@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { X, Mic, MicOff, Plus, ArrowUp, Sparkles } from "lucide-react";
+import { X, Mic, MicOff, Plus, ArrowUp } from "lucide-react";
 import { useVoice } from "@/hooks/useVoice";
 import { EmberOrbVisualizer } from "./EmberOrbVisualizer";
 import { DiningCards } from "./DiningCards";

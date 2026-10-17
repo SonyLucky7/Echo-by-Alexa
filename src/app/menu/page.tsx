@@ -6,7 +6,7 @@ import { CategoryNav } from "@/components/menu/CategoryNav";
 import { MenuFilters } from "@/components/menu/MenuFilters";
 import { MenuItemCard } from "@/components/menu/MenuItemCard";
 import { DishDetail } from "@/components/menu/DishDetail";
-import { Sparkles, UtensilsCrossed } from "lucide-react";
+import { Flame, UtensilsCrossed } from "lucide-react";
 
 function MenuContent() {
   const searchParams = useSearchParams();
@@ -102,7 +102,7 @@ function MenuContent() {
       {/* Editorial Header */}
       <div className="mb-10 text-center max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-olive mb-2">
-          <Sparkles className="w-3.5 h-3.5" />
+          <Flame className="w-3.5 h-3.5 text-ember" />
           <span>Autumn Hearth Harvest</span>
         </div>
         <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-charcoal mb-4">

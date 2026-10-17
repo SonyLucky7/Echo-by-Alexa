@@ -68,7 +68,7 @@ export const RestaurantInfo: React.FC = () => {
                 Experience our curated tasting menus and botanical pairings seated in the stone dining room, or order for counter pickup and climate-insulated delivery.
               </p>
               <p className="text-xs text-charcoal/60">
-                Dietary customizations, allergens, and wine cellar guidance are readily accommodated through our multilingual AI concierge.
+                Dietary customizations, allergens, and wine cellar guidance are readily accommodated through our dining concierge and table sommelier.
               </p>
             </div>
           </div>

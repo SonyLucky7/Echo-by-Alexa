@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Sparkles, MapPin, Phone, Mail, Clock, ShieldCheck } from "lucide-react";
+import { Flame, MapPin, Phone, Mail, Clock, ShieldCheck } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
@@ -17,7 +17,7 @@ export const Footer: React.FC = () => {
             An elemental fine-dining sanctuary where hyper-seasonal wild botanicals, ancient grains, and live fire converge.
           </p>
           <div className="flex items-center gap-2 text-xs text-ember">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Flame className="w-3.5 h-3.5" />
             <span>Regenerative, organic, fire-crafted</span>
           </div>
         </div>
