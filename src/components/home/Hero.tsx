@@ -65,14 +65,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
           <button
             type="button"
             onClick={handleVoiceClick}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/20 bg-ivory/5 hover:bg-ivory/15 text-ivory backdrop-blur-md text-sm font-medium tracking-wide transition-all duration-300 group"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/15 hover:border-ivory/30 text-ivory text-sm font-medium tracking-wide transition-all duration-200"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-ember" />
-            </span>
-            <Mic className="w-4 h-4 text-ember group-hover:scale-110 transition-transform" />
-            <span>Voice Assistant</span>
+            <Mic className="w-4 h-4 text-ember" />
+            <span>Speak</span>
           </button>
         </div>
 

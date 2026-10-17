@@ -83,19 +83,14 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           {/* Action Controls */}
           <div className="flex items-center gap-3">
-            {/* Voice Assistant Pill Button (No names on button) */}
             <button
               type="button"
               onClick={onOpenVoice}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-charcoal/15 bg-cream/70 hover:bg-cream text-charcoal text-xs font-medium tracking-wide transition-all duration-300 shadow-xs hover:border-ember/40 group"
-              title="Open Voice Assistant"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-charcoal/12 hover:border-ember/40 bg-ivory hover:bg-cream text-charcoal text-xs font-medium tracking-wide transition-all duration-200"
+              aria-label="Speak"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-ember" />
-              </span>
-              <Mic className="w-3.5 h-3.5 text-ember group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline">Voice Assistant</span>
+              <Mic className="w-3.5 h-3.5 text-ember" />
+              <span className="hidden sm:inline">Speak</span>
             </button>
 
             {/* Cart Trigger */}

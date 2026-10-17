@@ -41,11 +41,12 @@ describe("Integration: Complete Order Lifecycle & Fulfillment Modes", () => {
     expect(cartAfter1.itemCount).toBe(2);
 
     // Add second dish with customization option if available
-    const customOptionId = dish2.customizationGroups[0]?.options[0]?.id;
+    const customGroup = dish2.customizationGroups[0];
+    const customOption = customGroup?.options[0];
     const cartAfter2 = await addToCart(sessionId, {
       itemId: dish2.id,
       quantity: 1,
-      customizationOptionIds: customOptionId ? [customOptionId] : undefined,
+      customizations: customGroup && customOption ? [{ groupId: customGroup.id, optionId: customOption.id }] : undefined,
     });
     expect(cartAfter2.itemCount).toBe(3);
 

@@ -16,130 +16,100 @@ export const EmberOrbVisualizer: React.FC<EmberOrbVisualizerProps> = ({
   const isListening = state === "listening";
   const isProcessing = state === "processing";
   const isMuted = state === "muted";
+  const isActive = isSpeaking || isListening;
 
-  // Calculate live audio energy (0 to 1)
+  // Calculate dynamic energy (0 to 1) from real Web Audio FFT frequencies
   const avgEnergy =
     frequencies && frequencies.length > 0
-      ? frequencies.reduce((a, b) => a + b, 0) / frequencies.length
+      ? Math.min(frequencies.reduce((a, b) => a + b, 0) / frequencies.length, 1)
       : 0;
 
-  // Scale orb dynamically with audio energy
-  const orbScale = isMuted ? 0.95 : 1.0 + avgEnergy * 0.35;
-  const glowIntensity = isMuted ? 0.2 : 0.5 + avgEnergy * 0.5;
+  // Dynamic scale multiplier
+  const waveScale = isMuted ? 0.3 : isActive ? 1.0 + avgEnergy * 1.8 : isProcessing ? 0.75 : 0.45;
+
+  const stateLabel = isMuted
+    ? "Muted"
+    : isSpeaking
+    ? "Speaking"
+    : isListening
+    ? "Listening..."
+    : isProcessing
+    ? "Thinking..."
+    : state === "connecting"
+    ? "Connecting..."
+    : "Ready";
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-6 select-none">
-      {/* 1. Large Ambient Radiance (matches Image 1 ambient lighting) */}
+    <div className="relative flex flex-col items-center justify-center py-6 sm:py-8 select-none w-full max-w-xl mx-auto">
+      {/* Soft warm atmospheric hearth glow */}
       <div
-        className="absolute w-72 h-72 rounded-full transition-all duration-150 ease-out pointer-events-none blur-[60px]"
+        className="absolute w-80 h-32 rounded-full pointer-events-none blur-[70px] transition-all duration-300"
         style={{
-          background: isSpeaking
-            ? "radial-gradient(circle, rgba(197, 143, 88, 0.6) 0%, rgba(230, 181, 135, 0.3) 40%, rgba(65, 74, 62, 0.1) 70%, transparent 80%)"
-            : isListening
-            ? "radial-gradient(circle, rgba(230, 181, 135, 0.7) 0%, rgba(197, 143, 88, 0.4) 45%, transparent 75%)"
-            : isProcessing
-            ? "radial-gradient(circle, rgba(197, 143, 88, 0.5) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(197, 143, 88, 0.3) 0%, transparent 70%)",
-          transform: `scale(${orbScale * 1.15})`,
-          opacity: glowIntensity,
+          background: isActive
+            ? "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.35) 0%, rgba(230, 181, 135, 0.15) 50%, transparent 75%)"
+            : "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.18) 0%, transparent 70%)",
+          transform: `scale(${1 + avgEnergy * 0.5})`,
+          opacity: isMuted ? 0.2 : 0.85,
         }}
       />
 
-      {/* 2. Ethereal 3D Luminous Sphere with Swirling Organic Ribbons (matches Image 1 center screen) */}
-      <div
-        className="relative z-10 w-36 h-36 sm:w-44 sm:h-44 rounded-full flex items-center justify-center overflow-hidden transition-transform duration-100 ease-out border border-ember/30 shadow-[0_0_50px_rgba(197,143,88,0.5)]"
-        style={{
-          transform: `scale(${orbScale})`,
-          background:
-            "radial-gradient(circle at 40% 35%, #2A1A10 0%, #161616 65%, #0B0B0C 100%)",
-        }}
-      >
-        {/* Outer glass highlight rim */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-transparent to-white/20 pointer-events-none" />
-
-        {/* Swirling Organic Ribbon Layer 1 */}
+      {/* Fluid Layered Organic Acoustic Waveform (Matches Reference Image 1) */}
+      <div className="relative z-10 w-full h-24 sm:h-28 flex items-center justify-center overflow-hidden">
+        {/* Layer 1: Back translucent deep ember wave */}
         <div
-          className={`absolute w-48 h-48 rounded-[42%] bg-gradient-to-tr from-ember/60 via-ember-light/50 to-transparent blur-[6px] transition-opacity duration-300 ${
-            isSpeaking || isListening ? "animate-orb-swirl" : "animate-orb-swirl opacity-70"
-          }`}
-          style={{ animationDuration: isSpeaking ? "5s" : "12s" }}
-        />
-
-        {/* Swirling Organic Ribbon Layer 2 (Reverse) */}
-        <div
-          className={`absolute w-44 h-44 rounded-[46%] bg-gradient-to-br from-ivory/40 via-ember/50 to-transparent blur-[5px] transition-opacity duration-300 ${
-            isSpeaking || isListening
-              ? "animate-orb-swirl-reverse"
-              : "animate-orb-swirl-reverse opacity-60"
-          }`}
-          style={{ animationDuration: isSpeaking ? "7s" : "16s" }}
-        />
-
-        {/* Swirling Ribbon Layer 3 - Core Flame Filament */}
-        <div
-          className="absolute w-36 h-36 rounded-full border border-ember-light/40 animate-pulse blur-[1px]"
-          style={{ transform: `scale(${1 + avgEnergy * 0.2})` }}
-        />
-
-        {/* Glowing Central Nucleus */}
-        <div
-          className="relative z-20 w-16 h-16 rounded-full transition-transform duration-75 blur-[2px]"
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-100 ease-out animate-wave-2"
           style={{
-            background:
-              "radial-gradient(circle, #FFF4E8 0%, #E6B587 40%, #C58F58 80%, transparent 100%)",
-            transform: `scale(${1 + avgEnergy * 0.4})`,
-            boxShadow: "0 0 30px rgba(230, 181, 135, 0.9)",
+            transform: `scaleY(${waveScale * 0.85})`,
+            opacity: isMuted ? 0.15 : 0.45,
           }}
-        />
-      </div>
-
-      {/* 3. Organic Fluid Layered Acoustic Soundwave (matches Image 2) */}
-      <div className="relative z-10 w-full max-w-sm mt-6 flex items-center justify-center h-14 overflow-hidden">
-        {/* Layer 1: Back warm translucent wave */}
-        <div
-          className="absolute inset-0 flex items-center justify-center opacity-40 animate-wave-2"
-          style={{ transform: `scaleY(${0.8 + avgEnergy * 1.4})` }}
         >
-          <svg viewBox="0 0 300 60" className="w-full h-full fill-none stroke-ember-dark stroke-[3]">
-            <path d="M 0 30 C 50 10, 100 50, 150 30 C 200 10, 250 50, 300 30" />
+          <svg viewBox="0 0 600 120" className="w-full h-full fill-none stroke-ember-dark stroke-[4] drop-shadow-[0_0_8px_rgba(152,90,38,0.5)]">
+            <path d="M 0 60 C 100 20, 200 100, 300 60 C 400 20, 500 100, 600 60" />
           </svg>
         </div>
 
-        {/* Layer 2: Mid glowing ember wave */}
+        {/* Layer 2: Mid glowing hearth ember wave */}
         <div
-          className="absolute inset-0 flex items-center justify-center opacity-70 animate-wave-1"
-          style={{ transform: `scaleY(${1.0 + avgEnergy * 1.8})` }}
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-75 ease-out animate-wave-1"
+          style={{
+            transform: `scaleY(${waveScale * 1.15})`,
+            opacity: isMuted ? 0.25 : 0.75,
+          }}
         >
-          <svg viewBox="0 0 300 60" className="w-full h-full fill-none stroke-ember stroke-[3.5]">
-            <path d="M 0 30 C 60 50, 120 10, 180 45 C 240 15, 270 40, 300 30" />
+          <svg viewBox="0 0 600 120" className="w-full h-full fill-none stroke-ember stroke-[4.5] drop-shadow-[0_0_12px_rgba(197,143,88,0.7)]">
+            <path d="M 0 60 C 120 100, 220 20, 320 85 C 420 30, 520 85, 600 60" />
           </svg>
         </div>
 
         {/* Layer 3: Front bright gold acoustic wave */}
         <div
-          className="absolute inset-0 flex items-center justify-center opacity-90 transition-transform duration-75"
-          style={{ transform: `scaleY(${0.9 + avgEnergy * 2.2})` }}
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-75 ease-out"
+          style={{
+            transform: `scaleY(${waveScale * 1.4})`,
+            opacity: isMuted ? 0.35 : 0.95,
+          }}
         >
-          <svg viewBox="0 0 300 60" className="w-full h-full fill-none stroke-ember-light stroke-[4]">
-            <path d="M 0 30 C 40 18, 90 42, 150 25 C 210 10, 260 48, 300 30" />
+          <svg viewBox="0 0 600 120" className="w-full h-full fill-none stroke-ember-light stroke-[5] drop-shadow-[0_0_18px_rgba(230,181,135,0.9)]">
+            <path d="M 0 60 C 80 35, 180 85, 300 50 C 420 20, 520 95, 600 60" />
           </svg>
         </div>
       </div>
 
-      {/* 4. Understated State Indicator (No names!) */}
-      <p className="mt-2 text-xs font-serif uppercase tracking-[0.2em] text-ivory/60">
-        {isMuted
-          ? "Muted"
-          : isSpeaking
-          ? "Responding..."
-          : isListening
-          ? "I'm listening..."
-          : isProcessing
-          ? "Thinking..."
-          : state === "connecting"
-          ? "Connecting..."
-          : "Ready"}
-      </p>
+      {/* State label */}
+      <div className="flex items-center gap-2 mt-2">
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${
+            isActive
+              ? "bg-ember animate-ping"
+              : isProcessing
+              ? "bg-ember-light animate-pulse"
+              : "bg-ivory/40"
+          }`}
+        />
+        <span className="text-[11px] uppercase tracking-[0.25em] text-ivory/60 font-mono font-medium">
+          {stateLabel}
+        </span>
+      </div>
     </div>
   );
 };

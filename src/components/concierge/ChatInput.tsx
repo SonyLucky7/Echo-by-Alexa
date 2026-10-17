@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Send, Mic, ArrowUp } from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
+import React, { useState, useRef } from "react";
+import { ArrowUp, Mic } from "lucide-react";
 
 export interface ChatInputProps {
   onSendMessage: (text: string) => void;
@@ -17,22 +16,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { locale } = useLanguage();
-
-  const getPlaceholder = () => {
-    switch (locale) {
-      case "hi":
-        return "एलेक्सा से पूछें (व्यंजन, सिफारिशें, ऑर्डर)...";
-      case "te":
-        return "అలెక్సాని అడగండి (వంటకాలు, ఆర్డర్, సలహాలు)...";
-      case "es":
-        return "Pregunte a Alexa sobre platos, maridajes o su orden...";
-      case "fr":
-        return "Demandez à Alexa (plats au feu de bois, accords, commande)...";
-      default:
-        return "Ask Alexa about open-fire dishes, pairings, or your order...";
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +57,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <button
           type="button"
           onClick={handleOpenVoice}
-          title="Speak with Alexa (Multilingual Voice)"
+          aria-label="Speak"
           className="p-2.5 rounded-xl bg-ivory-100 hover:bg-ember/15 text-charcoal hover:text-ember transition-colors border border-ivory-300 flex-shrink-0"
         >
           <Mic className="w-4 h-4" />
@@ -85,7 +68,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={getPlaceholder()}
+          placeholder="Ask about our menu, pairings, or place an order..."
           disabled={isLoading}
           className="flex-1 bg-ivory-50 border border-ivory-300 rounded-xl px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition-all"
         />

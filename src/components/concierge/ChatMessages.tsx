@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Sparkles, Flame } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { ChatMessageItem } from "@/hooks/useConcierge";
 import { ToolResultCard } from "./ToolResultCard";
 
@@ -23,7 +23,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
   }, [messages, isLoading]);
 
   const renderFormattedText = (text: string) => {
-    // Basic bold markdown renderer for luxury copy
     const parts = text.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith("**") && part.endsWith("**")) {
@@ -51,8 +50,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
             className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
           >
             {!isUser && (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-charcoal to-forest flex items-center justify-center flex-shrink-0 text-ember shadow-sm border border-ember/30 mt-0.5">
-                <Sparkles className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-full bg-charcoal flex items-center justify-center flex-shrink-0 mt-0.5 border border-ember/20">
+                <div className="w-2 h-2 rounded-full bg-ember" />
               </div>
             )}
 
@@ -63,8 +62,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
                   : "bg-ivory border border-ivory-300 text-charcoal/90 rounded-tl-none shadow-sm"
               }`}
             >
-
-
               <p className="whitespace-pre-wrap">{renderFormattedText(msg.content)}</p>
 
               {/* Render tool results if any */}
@@ -89,18 +86,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
       })}
 
       {isLoading && (
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-charcoal to-forest flex items-center justify-center flex-shrink-0 text-ember shadow-sm border border-ember/30 animate-pulse">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div className="bg-ivory border border-ivory-300 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-ember animate-bounce" style={{ animationDelay: "0ms" }} />
-            <span className="w-2 h-2 rounded-full bg-ember animate-bounce" style={{ animationDelay: "150ms" }} />
-            <span className="w-2 h-2 rounded-full bg-ember animate-bounce" style={{ animationDelay: "300ms" }} />
-            <span className="text-xs text-charcoal/60 font-serif italic ml-2">
-              Alexa is consulting the kitchen hearth...
-            </span>
-          </div>
+        <div className="flex items-center gap-2 pl-10 py-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-ember animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-ember animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-ember animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       )}
     </div>

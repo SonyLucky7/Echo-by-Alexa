@@ -546,4 +546,28 @@ export const tools: Record<string, ToolDefinition> = {
       }
     },
   },
+
+  // 15. book_table
+  book_table: {
+    name: "book_table",
+    description: "Reserve a dining table at ECHO Hearthstone Dining Room with preferred party size, time, and date.",
+    parameters: z.object({
+      partySize: z.number().int().min(1).max(12).default(2),
+      date: z.string().optional().describe("Date e.g. tonight, tomorrow, or YYYY-MM-DD"),
+      time: z.string().optional().describe("Preferred seating time e.g. 7:00 PM"),
+      seatingArea: z.string().optional().describe("Hearthside, Main Dining Room, or Botanical Patio"),
+    }),
+    execute: async (args) => {
+      return {
+        type: "reservation",
+        restaurant: "ECHO Hearthstone Dining Room",
+        partySize: args.partySize || 2,
+        date: args.date || "Tonight",
+        time: args.time || "7:00 PM",
+        seatingArea: args.seatingArea || "Hearthside Sanctuary",
+        availableSlots: ["6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM"],
+        address: "448 Hearthstone Way · 5.0 ★ Sanctuary Seating",
+      };
+    },
+  },
 };

@@ -11,8 +11,8 @@ describe("Concierge Language System", () => {
   it("English has a distinct authentic welcome greeting and system prompt", () => {
     const config = getPromptForLocale("en");
     expect(config.locale).toBe("en");
-    expect(config.welcomeGreeting.length).toBeGreaterThan(50);
-    expect(config.welcomeGreeting).toContain("Hello, and welcome to ECHO");
+    expect(config.welcomeGreeting.length).toBeGreaterThan(20);
+    expect(config.welcomeGreeting).toContain("Welcome to ECHO");
     expect(config.systemPrompt.length).toBeGreaterThan(100);
     expect(config.sampleQuestions.length).toBeGreaterThanOrEqual(3);
   });

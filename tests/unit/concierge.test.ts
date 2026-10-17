@@ -99,4 +99,11 @@ describe("AI Concierge Tools & Engine", () => {
     expect(response.text.toLowerCase()).toContain("vegan");
     expect(response.toolCalls![0].name).toBe("browse_menu");
   });
+
+  it("fallback intent engine handles table reservation inquiry with interactive slots", async () => {
+    const response = await executeFallbackIntent("Can I book a table for 2 tonight?", testSession);
+    expect(response.text.toLowerCase()).toContain("table");
+    expect(response.toolCalls![0].name).toBe("book_table");
+    expect(response.toolResults![0].result.availableSlots.length).toBeGreaterThan(0);
+  });
 });

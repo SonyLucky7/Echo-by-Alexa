@@ -154,6 +154,19 @@ function buildGeminiToolDeclarations(): FunctionDeclaration[] {
         required: ["orderRef"],
       },
     },
+    {
+      name: "book_table",
+      description: tools.book_table.description,
+      parameters: {
+        type: SchemaType.OBJECT,
+        properties: {
+          partySize: { type: SchemaType.INTEGER, description: "Number of guests (default 2)" },
+          date: { type: SchemaType.STRING, description: "Date e.g. tonight or tomorrow" },
+          time: { type: SchemaType.STRING, description: "Preferred time e.g. 7:00 PM" },
+          seatingArea: { type: SchemaType.STRING, description: "Hearthside, Main Dining Room, or Botanical Patio" },
+        },
+      },
+    },
   ];
 }
 
@@ -200,8 +213,8 @@ export async function executeFallbackIntent(
   if (q.includes("cart") || q.includes("my bag") || q.includes("show cart") || q.includes("what did i order")) {
     const result = await tools.view_cart.execute({}, session);
     const text = result.itemCount === 0
-      ? "Your dining cart is currently empty. May I suggest beginning with our Ember-Roasted King Oyster Mushrooms or Wood-Fired Sourdough?"
-      : `Your cart contains ${result.itemCount} creation${result.itemCount > 1 ? "s" : ""} totaling ${result.formattedTotal}. Would you like to proceed to checkout or explore dessert?`;
+      ? "Your cart is empty right now. Want me to suggest something?"
+      : `You've got ${result.itemCount} item${result.itemCount > 1 ? "s" : ""} in your cart, totaling ${result.formattedTotal}. Ready to check out, or want to add more?`;
     
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "view_cart", args: {} }], [{ tool: "view_cart", result }]);
     return {
@@ -218,9 +231,9 @@ export async function executeFallbackIntent(
     const result = await tools.prepare_checkout.execute({}, session);
     let text = "";
     if (result.error) {
-      text = `Before we can proceed to checkout, ${result.error}. Would you like to browse our hearth selections?`;
+      text = `Hmm, ${result.error}. Want to browse the menu first?`;
     } else {
-      text = `Your dining selection is confirmed at ${result.summary.formattedTotal} for ${result.summary.itemCount} items. You may now complete your table or delivery checkout securely.`;
+      text = `All set — ${result.summary.itemCount} items, ${result.summary.formattedTotal} total. You can finish checkout whenever you're ready.`;
     }
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "prepare_checkout", args: {} }], [{ tool: "prepare_checkout", result }]);
     return {
@@ -232,7 +245,36 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 4. Add to cart intent (e.g. "add ember flatbread", "order duck", "add sourdough")
+  // 4. Table booking / reservation intent (e.g. "book a table", "table for 2", "reserve tonight")
+  if (
+    q.includes("book") ||
+    q.includes("table") ||
+    q.includes("reserv") ||
+    q.includes("seating") ||
+    q.includes("seat for")
+  ) {
+    const numMatch = q.match(/\b([1-9]|1[0-2])\b/);
+    const partySize = numMatch ? parseInt(numMatch[1], 10) : 2;
+    const result = await tools.book_table.execute({ partySize }, session);
+    const text = `I'd love to arrange a table for ${partySize} at our white oak hearth tonight. Please select your preferred dinner seating:`;
+
+    await recordMessage(
+      conv.conversationId,
+      "assistant",
+      text,
+      [{ name: "book_table", args: { partySize } }],
+      [{ tool: "book_table", result }]
+    );
+    return {
+      text,
+      toolCalls: [{ name: "book_table", args: { partySize } }],
+      toolResults: [{ tool: "book_table", result }],
+      conversationId: conv.conversationId,
+      suggestions: ["6:00 PM", "7:00 PM", "8:00 PM", "Browse dinner menu"],
+    };
+  }
+
+  // 5. Add to cart intent (e.g. "add ember flatbread", "order duck", "add sourdough")
   if (q.startsWith("add ") || q.includes("add to cart") || q.startsWith("order ") || q.includes("i'd like the ") || q.includes("i want the ")) {
     // Find matching dish from db
     const allDishes = await db.menuItem.findMany({ where: { isAvailable: true } });
@@ -247,19 +289,19 @@ export async function executeFallbackIntent(
       const numMatch = q.match(/\b([1-9])\b/);
       const qty = numMatch ? parseInt(numMatch[1], 10) : 1;
       const result = await tools.add_to_cart.execute({ itemId: matched.id, quantity: qty }, session);
-      const text = `I have added ${qty}x **${matched.name}** ($${(matched.basePriceMinor / 100).toFixed(2)}) to your cart. Cart subtotal is now ${result.summary.formattedSubtotal}.`;
+      const text = `Added ${qty}x **${matched.name}** ($${(matched.basePriceMinor / 100).toFixed(2)}) to your cart. Total so far: ${result.summary.formattedSubtotal}.`;
       await recordMessage(conv.conversationId, "assistant", text, [{ name: "add_to_cart", args: { itemId: matched.id, quantity: qty } }], [{ tool: "add_to_cart", result }]);
       return {
         text,
         toolCalls: [{ name: "add_to_cart", args: { itemId: matched.id, quantity: qty } }],
         toolResults: [{ tool: "add_to_cart", result }],
         conversationId: conv.conversationId,
-        suggestions: ["View Cart", "Proceed to checkout", "Pair with a beverage"],
+        suggestions: ["View Cart", "Proceed to checkout", "Pair with wine", "Explore dessert"],
       };
     }
   }
 
-  // 5. Dietary inquiries (vegan, vegetarian, gluten-free, dairy-free)
+  // 6. Dietary inquiries (vegan, vegetarian, gluten-free, dairy-free)
   const isVegan = q.includes("vegan");
   const isVegetarian = q.includes("vegetarian") || q.includes("veg ");
   const isGlutenFree = q.includes("gluten") || q.includes("celiac");
@@ -271,7 +313,8 @@ export async function executeFallbackIntent(
     if (isGlutenFree) flags.push("GLUTEN_FREE");
 
     const result = await tools.browse_menu.execute({ dietaryFlags: flags }, session);
-    const text = `We have crafted several wood-fired selections meeting your ${flags.join(" & ").toLowerCase()} preferences, including our **${result.slice(0, 3).map((r: any) => r.name).join("**, **")}**. Would you like details on any of these?`;
+    const names = result.slice(0, 3).map((r: any) => r.name);
+    const text = `Sure! We've got some great ${flags.join(" & ").toLowerCase()} options — **${names.join("**, **")}**. Want details on any of these?`;
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "browse_menu", args: { dietaryFlags: flags } }], [{ tool: "browse_menu", result }]);
     return {
       text,
@@ -282,10 +325,23 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 6. Recommendations / pairing inquiries
-  if (q.includes("recommend") || q.includes("suggestion") || q.includes("signature") || q.includes("pair") || q.includes("special")) {
+  // 7. Recommendations / pairing inquiries / what to eat
+  if (
+    q.includes("recommend") ||
+    q.includes("suggestion") ||
+    q.includes("signature") ||
+    q.includes("pair") ||
+    q.includes("special") ||
+    q.includes("what is good") ||
+    q.includes("what's good") ||
+    q.includes("what should i eat") ||
+    q.includes("best dish") ||
+    q.includes("popular") ||
+    q.includes("dinner for two") ||
+    q.includes("date night")
+  ) {
     const result = await tools.recommend_items.execute({ tasteNotes: "smoky, aromatic, umami" }, session);
-    const text = `Tonight, Chef recommends our centerpiece **${result.highlight.name}** (${result.highlight.priceFormatted}), alongside **${result.complement.name}** (${result.complement.priceFormatted}). Each dish celebrates live white-oak fire and wild seasonal botanicals.`;
+    const text = `Tonight I'd go with the **${result.highlight.name}** (${result.highlight.priceFormatted}) — it's really good. And the **${result.complement.name}** (${result.complement.priceFormatted}) pairs nicely with it. Want me to add either to your cart?`;
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "recommend_items", args: {} }], [{ tool: "recommend_items", result }]);
     return {
       text,
@@ -296,33 +352,40 @@ export async function executeFallbackIntent(
         `Add ${result.highlight.name} to cart`,
         `Add ${result.complement.name} to cart`,
         "Show all wood-fired mains",
+        "Book a table for 2",
       ],
     };
   }
 
-  // 7. Restaurant information (hours, address, philosophy)
+  // 8. Restaurant information (hours, address, philosophy)
   if (q.includes("hours") || q.includes("address") || q.includes("location") || q.includes("phone") || q.includes("contact") || q.includes("parking")) {
     const result = await tools.get_restaurant_information.execute({}, session);
-    const text = `ECHO is located at **${result.address}**. Our dining room is open **${result.hours}**. For inquiries, you may reach our hosts at **${result.phone}**.`;
+    const text = `We're at **${result.address}**, open **${result.hours}**. Call us at **${result.phone}** if you need anything.`;
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "get_restaurant_information", args: {} }], [{ tool: "get_restaurant_information", result }]);
     return {
       text,
       toolCalls: [{ name: "get_restaurant_information", args: {} }],
       toolResults: [{ tool: "get_restaurant_information", result }],
       conversationId: conv.conversationId,
-      suggestions: ["Explore Our Menu", "Check Reservation Info", "Chat with Alexa"],
+      suggestions: ["Book a table", "Explore Our Menu", "Check Reservation Info"],
     };
   }
 
-  // 8. General menu browse fallback
-  const menuItems = await tools.browse_menu.execute({}, session);
-  const text = `Welcome to ECHO. Tonight we are featuring exquisite creations from our white oak hearth, including our **${menuItems[0]?.name || "Wood-Fired Specialties"}** and **${menuItems[1]?.name || "Seasonal Botanicals"}**. How may I guide your dining experience this evening?`;
-  
-  await recordMessage(conv.conversationId, "assistant", text);
+  // 9. General menu browse and friendly hospitality greeting
+  const recResult = await tools.recommend_items.execute({ tasteNotes: "hearth signature" }, session);
+  const text = `Hey! Tonight we're featuring dishes cooked over white oak embers, including our **${recResult.highlight.name}** (${recResult.highlight.priceFormatted}) and **${recResult.complement.name}** (${recResult.complement.priceFormatted}). What are you in the mood for?`;
+
+  await recordMessage(conv.conversationId, "assistant", text, undefined, [{ tool: "recommend_items", result: recResult }]);
   return {
     text,
+    toolResults: [{ tool: "recommend_items", result: recResult }],
     conversationId: conv.conversationId,
-    suggestions: promptConfig.sampleQuestions.slice(0, 3),
+    suggestions: [
+      `Add ${recResult.highlight.name}`,
+      "Book a table for 2",
+      "Tonight's specials",
+      "Vegan options",
+    ],
   };
 }
 
