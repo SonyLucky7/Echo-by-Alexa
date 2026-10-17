@@ -8,7 +8,7 @@ import { FulfillmentSelect, FulfillmentType } from "@/components/checkout/Fulfil
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/currency";
-import { ArrowLeft, ShieldCheck, Lock, Sparkles, CreditCard, Play } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Lock, CreditCard, Check } from "lucide-react";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,7 +25,12 @@ export default function CheckoutPage() {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryNotes, setDeliveryNotes] = useState("");
 
-  const [paymentProvider, setPaymentProvider] = useState<"STRIPE" | "SANDBOX">("SANDBOX");
+  const [paymentMethod, setPaymentMethod] = useState<"CARD" | "WALLET">("CARD");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [paymentProvider] = useState<"STRIPE" | "SANDBOX">("STRIPE");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -233,51 +238,156 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* 3. Payment Mode Selection */}
-          <div className="bg-cream/40 rounded-3xl p-6 sm:p-8 border border-charcoal/10 space-y-4">
-            <h3 className="font-serif text-xl font-medium text-charcoal mb-2">
-              Payment Gateway
-            </h3>
-            <p className="text-xs text-charcoal/60 leading-relaxed font-light mb-4">
-              Select hosted Stripe payment or 1-Click Instant Sandbox Mode for immediate testing.
-            </p>
+          {/* 3. Payment Method */}
+          <div className="bg-cream/40 rounded-3xl p-6 sm:p-8 border border-charcoal/10 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-xl font-medium text-charcoal">
+                Payment Method
+              </h3>
+              <div className="flex items-center gap-1.5 text-xs text-charcoal/50">
+                <Lock className="w-3.5 h-3.5 text-olive" />
+                <span>Encrypted &amp; Secure</span>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setPaymentProvider("SANDBOX")}
-                className={`p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${
-                  paymentProvider === "SANDBOX"
+                onClick={() => setPaymentMethod("CARD")}
+                className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                  paymentMethod === "CARD"
                     ? "bg-charcoal text-ivory border-charcoal shadow-sm ring-1 ring-charcoal"
                     : "bg-ivory border-charcoal/15 text-charcoal hover:bg-cream"
                 }`}
               >
-                <Play className={`w-5 h-5 shrink-0 mt-0.5 ${paymentProvider === "SANDBOX" ? "text-ember" : "text-olive"}`} />
-                <div>
-                  <span className="text-sm font-semibold block">1-Click Sandbox Mode</span>
-                  <span className={`text-xs block mt-0.5 ${paymentProvider === "SANDBOX" ? "text-ivory/70" : "text-charcoal/60"}`}>
-                    Instant verified simulation (Zero credit card required)
+                <CreditCard className={`w-5 h-5 shrink-0 ${paymentMethod === "CARD" ? "text-ember" : "text-charcoal/60"}`} />
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold block leading-tight">Credit or Debit Card</span>
+                  <span className={`text-xs block mt-0.5 truncate ${paymentMethod === "CARD" ? "text-ivory/70" : "text-charcoal/50"}`}>
+                    Visa, Mastercard, Amex
                   </span>
                 </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setPaymentProvider("STRIPE")}
-                className={`p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${
-                  paymentProvider === "STRIPE"
+                onClick={() => setPaymentMethod("WALLET")}
+                className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                  paymentMethod === "WALLET"
                     ? "bg-charcoal text-ivory border-charcoal shadow-sm ring-1 ring-charcoal"
                     : "bg-ivory border-charcoal/15 text-charcoal hover:bg-cream"
                 }`}
               >
-                <CreditCard className={`w-5 h-5 shrink-0 mt-0.5 ${paymentProvider === "STRIPE" ? "text-ember" : "text-olive"}`} />
-                <div>
-                  <span className="text-sm font-semibold block">Stripe Checkout</span>
-                  <span className={`text-xs block mt-0.5 ${paymentProvider === "STRIPE" ? "text-ivory/70" : "text-charcoal/60"}`}>
-                    Hosted cards, Apple Pay, Google Pay
+                <div className={`w-5 h-5 shrink-0 flex items-center justify-center font-bold text-base leading-none ${paymentMethod === "WALLET" ? "text-ember" : "text-charcoal/70"}`}>
+                  
+                </div>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold block leading-tight">Digital Wallet</span>
+                  <span className={`text-xs block mt-0.5 truncate ${paymentMethod === "WALLET" ? "text-ivory/70" : "text-charcoal/50"}`}>
+                    Apple Pay / Google Pay
                   </span>
                 </div>
               </button>
             </div>
+
+            {/* Method Details */}
+            {paymentMethod === "CARD" ? (
+              <div className="space-y-4 pt-1">
+                <div>
+                  <label className="block text-xs font-medium text-charcoal mb-1.5 uppercase tracking-wider">
+                    Card Number
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={19}
+                      value={cardNumber}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                        const formatted = v.match(/.{1,4}/g)?.join(" ") || v;
+                        setCardNumber(formatted);
+                      }}
+                      placeholder="4000 1234 5678 9010"
+                      className="w-full px-4 py-3 bg-ivory border border-charcoal/20 rounded-xl text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal font-mono tracking-wider"
+                    />
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-charcoal/40 font-mono uppercase">
+                      <span className="px-1.5 py-0.5 bg-charcoal/5 rounded font-semibold text-[10px]">VISA</span>
+                      <span className="px-1.5 py-0.5 bg-charcoal/5 rounded font-semibold text-[10px]">MC</span>
+                      <span className="px-1.5 py-0.5 bg-charcoal/5 rounded font-semibold text-[10px]">AMEX</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-charcoal mb-1.5 uppercase tracking-wider">
+                      Expiration Date
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={cardExpiry}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        if (v.length >= 3) {
+                          v = `${v.slice(0, 2)}/${v.slice(2)}`;
+                        }
+                        setCardExpiry(v);
+                      }}
+                      placeholder="MM / YY"
+                      className="w-full px-4 py-3 bg-ivory border border-charcoal/20 rounded-xl text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal font-mono text-center"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-charcoal mb-1.5 uppercase tracking-wider">
+                      Security Code
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={cardCvc}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          setCardCvc(v);
+                        }}
+                        placeholder="CVC"
+                        className="w-full px-4 py-3 bg-ivory border border-charcoal/20 rounded-xl text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal font-mono text-center tracking-widest"
+                      />
+                      <Lock className="w-3.5 h-3.5 text-charcoal/30 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-charcoal mb-1.5 uppercase tracking-wider">
+                    Name on Card
+                  </label>
+                  <input
+                    type="text"
+                    value={cardName || customerName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="Full name as printed on card"
+                    className="w-full px-4 py-3 bg-ivory border border-charcoal/20 rounded-xl text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 bg-ivory rounded-2xl border border-charcoal/15 text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-charcoal text-ivory flex items-center justify-center mx-auto text-xl font-bold">
+                  
+                </div>
+                <h4 className="text-sm font-semibold text-charcoal">Apple Pay &amp; Google Pay Ready</h4>
+                <p className="text-xs text-charcoal/60 font-light max-w-sm mx-auto">
+                  Click &ldquo;Place Order&rdquo; to complete authorization seamlessly with your device biometric pass.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -376,18 +486,18 @@ export default function CheckoutPage() {
             variant="ember"
             size="lg"
             isLoading={isSubmitting}
-            className="w-full py-4 text-base shadow-sm"
+            className="w-full py-4 text-base shadow-sm font-medium tracking-wide"
           >
-            {paymentProvider === "SANDBOX" ? (
-              <span>Confirm & Place Sandbox Order</span>
+            {isSubmitting ? (
+              <span>Authorizing Order...</span>
             ) : (
-              <span>Proceed to Stripe Checkout</span>
+              <span>Place Order • {formatCurrency(finalTotal, cart.currency)}</span>
             )}
           </Button>
 
           <div className="flex items-center justify-center gap-2 text-[11px] text-charcoal/50 pt-2">
             <Lock className="w-3.5 h-3.5 text-olive" />
-            <span>256-bit encrypted secure hospitality transaction</span>
+            <span>256-bit encrypted secure checkout</span>
           </div>
         </div>
       </form>

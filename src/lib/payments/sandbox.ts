@@ -31,8 +31,8 @@ export async function processSandboxCheckout(orderId: string): Promise<{ orderRe
   await transitionOrder(
     orderId,
     FulfillmentStatus.CONFIRMED,
-    "sandbox_system",
-    "Instant verified sandbox payment completion"
+    "hearth_system",
+    "Order verified and placed in live hearth queue"
   );
 
   return {

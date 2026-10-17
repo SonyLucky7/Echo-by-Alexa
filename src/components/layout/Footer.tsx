@@ -34,13 +34,13 @@ export const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/#hearth-story" className="hover:text-ember transition-colors">
+              <Link href="/story" className="hover:text-ember transition-colors">
                 Culinary Philosophy
               </Link>
             </li>
             <li>
-              <Link href="/#hours-location" className="hover:text-ember transition-colors">
-                Reservations & Location
+              <Link href="/reservations" className="hover:text-ember transition-colors">
+                Table Reservations
               </Link>
             </li>
             <li>
@@ -103,10 +103,16 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 mt-12 pt-8 border-t border-ivory/10 flex flex-col md:flex-row items-center justify-between text-xs text-ivory/40 gap-4">
         <p>© {new Date().getFullYear()} ECHO Restaurant & Gastronomy Group. All rights reserved.</p>
-        <div className="flex gap-6">
-          <span className="hover:text-ivory cursor-pointer">Dietary & Allergen Policy</span>
-          <span className="hover:text-ivory cursor-pointer">Privacy Notice</span>
-          <span className="hover:text-ivory cursor-pointer">Terms of Hospitality</span>
+        <div className="flex flex-wrap gap-6">
+          <Link href="/dietary" className="hover:text-ivory transition-colors">
+            Dietary &amp; Allergen Policy
+          </Link>
+          <Link href="/privacy" className="hover:text-ivory transition-colors">
+            Privacy Notice
+          </Link>
+          <Link href="/terms" className="hover:text-ivory transition-colors">
+            Terms of Hospitality
+          </Link>
         </div>
       </div>
     </footer>

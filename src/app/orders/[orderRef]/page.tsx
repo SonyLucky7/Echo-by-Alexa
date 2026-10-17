@@ -120,9 +120,9 @@ export default function OrderTrackingPage({
       </div>
 
       {/* Main Grid: Timeline + Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left: Interactive Timeline (7 cols) */}
-        <div className="lg:col-span-7 bg-cream/30 rounded-3xl p-6 sm:p-8 border border-charcoal/10">
+        <div className="lg:col-span-7 bg-ivory rounded-3xl p-6 sm:p-8 border border-charcoal/10 shadow-card">
           <OrderTimeline
             currentStatus={order.fulfillmentStatus}
             fulfillmentMode={order.fulfillmentMode}

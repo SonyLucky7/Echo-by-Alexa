@@ -65,11 +65,21 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </span>
           </Link>
           <Link
-            href="/#hearth-story"
+            href="/story"
             onClick={onClose}
             className="hover:text-ember transition-colors py-1"
           >
-            Our Hearth & Botanicals
+            Our Hearth Philosophy
+          </Link>
+          <Link
+            href="/reservations"
+            onClick={onClose}
+            className="hover:text-ember transition-colors py-1 flex items-center justify-between"
+          >
+            <span>Table Reservations</span>
+            <span className="text-xs uppercase tracking-wider bg-ember/30 px-2 py-0.5 rounded text-ivory">
+              Book
+            </span>
           </Link>
           <Link
             href="/#hours-location"

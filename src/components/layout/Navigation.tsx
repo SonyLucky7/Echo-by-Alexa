@@ -99,16 +99,15 @@ export const Navigation: React.FC<NavigationProps> = ({
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
             </Link>
 
-            <button
-              type="button"
-              onClick={onOpenVoice}
+            <Link
+              href="/reservations"
               className={`group relative py-1 transition-colors ${
                 isHeroMode ? "text-ivory/80 hover:text-ivory" : "text-charcoal/80 hover:text-charcoal"
               }`}
             >
               <span>Reserve Table</span>
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
-            </button>
+            </Link>
 
             <Link
               href="/staff/orders"
