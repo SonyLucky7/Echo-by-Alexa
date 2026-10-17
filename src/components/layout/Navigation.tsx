@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mic, ShoppingBag, Menu as MenuIcon, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "./MobileMenu";
@@ -17,24 +18,31 @@ export const Navigation: React.FC<NavigationProps> = ({
   onOpenCart = () => {},
   onOpenVoice = () => {},
 }) => {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 50);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isHeroMode = isHome && !isScrolled;
 
   return (
     <>
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-          isScrolled
-            ? "bg-ivory/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(22,22,22,0.06)] border-b border-ember/20 py-3"
-            : "bg-ivory/80 backdrop-blur-xl border-b border-charcoal/8 py-4"
+          isHeroMode
+            ? "bg-charcoal/90 backdrop-blur-xl border-b border-white/10 py-4 text-ivory"
+            : isScrolled
+            ? "bg-ivory/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(22,22,22,0.06)] border-b border-ember/20 py-3 text-charcoal"
+            : "bg-ivory/90 backdrop-blur-xl border-b border-charcoal/8 py-4 text-charcoal"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
@@ -44,21 +52,31 @@ export const Navigation: React.FC<NavigationProps> = ({
             className="flex flex-col text-left group outline-none focus-visible:ring-2 focus-visible:ring-charcoal rounded"
           >
             <div className="flex items-center gap-2">
-              <span className="font-serif text-2xl md:text-3xl tracking-[0.2em] font-semibold text-charcoal group-hover:text-ember transition-colors">
+              <span
+                className={`font-serif text-2xl md:text-3xl tracking-[0.2em] font-semibold transition-colors ${
+                  isHeroMode ? "text-ivory group-hover:text-ember" : "text-charcoal group-hover:text-ember"
+                }`}
+              >
                 ECHO
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-ember shadow-[0_0_8px_#C58F58] animate-pulse -mt-0.5" />
             </div>
-            <span className="text-[9px] tracking-[0.25em] uppercase font-light text-olive -mt-0.5 hidden sm:block">
+            <span
+              className={`text-[9px] tracking-[0.25em] uppercase font-light -mt-0.5 hidden sm:block ${
+                isHeroMode ? "text-ivory/60" : "text-olive"
+              }`}
+            >
               Hearth & Botanicals
             </span>
           </Link>
 
           {/* Desktop Navigation Links with Guaranteed Animated Underlines */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-charcoal/80">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide">
             <Link
               href="/menu"
-              className="group relative py-1 text-charcoal/80 hover:text-charcoal transition-colors"
+              className={`group relative py-1 transition-colors ${
+                isHeroMode ? "text-ivory/80 hover:text-ivory" : "text-charcoal/80 hover:text-charcoal"
+              }`}
             >
               <span>Curated Menu</span>
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
@@ -66,7 +84,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <Link
               href="/#hearth-story"
-              className="group relative py-1 text-charcoal/80 hover:text-charcoal transition-colors"
+              className={`group relative py-1 transition-colors ${
+                isHeroMode ? "text-ivory/80 hover:text-ivory" : "text-charcoal/80 hover:text-charcoal"
+              }`}
             >
               <span>Our Hearth</span>
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
@@ -74,7 +94,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <Link
               href="/#hours-location"
-              className="group relative py-1 text-charcoal/80 hover:text-charcoal transition-colors"
+              className={`group relative py-1 transition-colors ${
+                isHeroMode ? "text-ivory/80 hover:text-ivory" : "text-charcoal/80 hover:text-charcoal"
+              }`}
             >
               <span>Hours & Location</span>
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
@@ -83,7 +105,9 @@ export const Navigation: React.FC<NavigationProps> = ({
             <button
               type="button"
               onClick={onOpenVoice}
-              className="group relative py-1 text-charcoal/80 hover:text-charcoal transition-colors"
+              className={`group relative py-1 transition-colors ${
+                isHeroMode ? "text-ivory/80 hover:text-ivory" : "text-charcoal/80 hover:text-charcoal"
+              }`}
             >
               <span>Reserve Table</span>
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-ember to-ember-light scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
@@ -91,7 +115,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             <Link
               href="/staff/orders"
-              className="text-xs text-charcoal/40 hover:text-charcoal transition-colors flex items-center gap-1.5 py-1"
+              className={`text-xs transition-colors flex items-center gap-1.5 py-1 ${
+                isHeroMode ? "text-ivory/50 hover:text-ivory" : "text-charcoal/40 hover:text-charcoal"
+              }`}
               title="Staff Kitchen Portal"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -121,7 +147,11 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Cart Trigger */}
             <button
               onClick={onOpenCart}
-              className="relative p-2.5 rounded-full text-charcoal hover:text-ember bg-cream/50 hover:bg-cream border border-charcoal/10 hover:border-ember/30 transition-all duration-300 hover:scale-105 active:scale-95 group"
+              className={`relative p-2.5 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 group border ${
+                isHeroMode
+                  ? "text-ivory hover:text-ember bg-white/10 hover:bg-white/20 border-white/15"
+                  : "text-charcoal hover:text-ember bg-cream/50 hover:bg-cream border-charcoal/10 hover:border-ember/30"
+              }`}
               aria-label={`View cart with ${cartCount} items`}
             >
               <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
@@ -135,7 +165,9 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-lg text-charcoal hover:bg-cream transition-colors"
+              className={`md:hidden p-2 rounded-lg transition-colors ${
+                isHeroMode ? "text-ivory hover:bg-white/10" : "text-charcoal hover:bg-cream"
+              }`}
               aria-label="Open navigation menu"
             >
               <MenuIcon className="w-6 h-6" />
