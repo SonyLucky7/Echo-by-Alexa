@@ -47,6 +47,8 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ categories }
                   <img
                     src={cat.imageUrl}
                     alt={cat.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover opacity-40 group-hover:opacity-55 group-hover:scale-105 transition-all duration-700 ease-out"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/30 to-transparent" />

@@ -10,6 +10,8 @@ export const Philosophy: React.FC = () => {
             <img
               src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
               alt="ECHO Live Hearth Fire and Cast Iron Cooking"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           </div>

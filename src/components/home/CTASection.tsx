@@ -17,8 +17,13 @@ export const CTASection: React.FC<CTASectionProps> = ({ onOpenVoice }) => {
 
   return (
     <section className="py-32 bg-charcoal text-ivory relative overflow-hidden text-center border-t border-ivory/10">
-      {/* Warm ambient hearth glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-ember/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Warm ambient hearth glow (GPU-accelerated radial gradient without costly blur filters) */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.12) 0%, transparent 70%)",
+        }}
+      />
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 md:px-12">
         <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ember mb-4 block">

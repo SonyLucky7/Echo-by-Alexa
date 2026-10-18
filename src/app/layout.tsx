@@ -84,6 +84,9 @@ export default function RootLayout({
                         subtree: true,
                         attributeFilter: ['bis_skin_checked']
                       });
+                      setTimeout(function() {
+                        try { observer.disconnect(); } catch(e) {}
+                      }, 8000);
                     }
                   }
                 } catch(e) {}

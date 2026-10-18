@@ -24,8 +24,15 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 40);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -37,12 +44,12 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-[background-color,border-color,box-shadow,color,padding] duration-200 will-change-[background-color] ${
           isHeroMode
             ? "bg-transparent border-b border-transparent py-5 text-ivory"
             : isScrolled
-            ? "bg-ivory/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(22,22,22,0.06)] border-b border-ember/20 py-3 text-charcoal"
-            : "bg-ivory/90 backdrop-blur-xl border-b border-charcoal/8 py-4 text-charcoal"
+            ? "bg-ivory/95 backdrop-blur-md shadow-[0_4px_20px_rgba(22,22,22,0.06)] border-b border-ember/20 py-3 text-charcoal"
+            : "bg-ivory/90 backdrop-blur-md border-b border-charcoal/8 py-4 text-charcoal"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">

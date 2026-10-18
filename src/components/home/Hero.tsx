@@ -22,12 +22,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
       {/* Background Photography with Atmospheric Vignette */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=2400&q=85"
+          src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1920&q=80"
           alt="ECHO Live Hearth Cooking"
-          className="w-full h-full object-cover opacity-30 scale-100 transition-transform duration-1000 ease-out"
+          className="w-full h-full object-cover opacity-30 pointer-events-none"
+          loading="eager"
+          decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-charcoal/80" />
-        <div className="absolute inset-0 bg-radial-gradient from-transparent via-charcoal/40 to-charcoal" />
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-charcoal/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/30 via-transparent to-charcoal pointer-events-none" />
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">

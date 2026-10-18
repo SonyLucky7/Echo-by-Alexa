@@ -37,21 +37,37 @@ export function useVoice() {
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
-  // Frequency loop: reads real FFT frequencies
-  const updateFrequencies = useCallback(() => {
-    if (analyserRef.current) {
-      const data = analyserRef.current.getFrequencies();
-      setFrequencies(data);
-    }
-    animFrameRef.current = requestAnimationFrame(updateFrequencies);
-  }, []);
-
+  // Frequency loop: only runs when modal is open and audio is active, throttled to ~30fps
   useEffect(() => {
-    animFrameRef.current = requestAnimationFrame(updateFrequencies);
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    if (!isOpen || (voiceState !== "speaking" && voiceState !== "listening")) {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+      return;
+    }
+
+    let lastTime = 0;
+    const loop = (timestamp: number) => {
+      // Throttle frequency updates to ~30fps to avoid choking React rendering pipeline
+      if (timestamp - lastTime >= 33) {
+        lastTime = timestamp;
+        if (analyserRef.current) {
+          const data = analyserRef.current.getFrequencies();
+          setFrequencies(data);
+        }
+      }
+      animFrameRef.current = requestAnimationFrame(loop);
     };
-  }, [updateFrequencies]);
+
+    animFrameRef.current = requestAnimationFrame(loop);
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+    };
+  }, [isOpen, voiceState]);
 
   // Listen to open voice events
   useEffect(() => {

@@ -3,15 +3,33 @@
 import { useState, useEffect, useCallback } from "react";
 import { CartTotals } from "@/types";
 
+let sharedCartFetchPromise: Promise<CartTotals | null> | null = null;
+
+async function getSharedCart(): Promise<CartTotals | null> {
+  if (!sharedCartFetchPromise) {
+    sharedCartFetchPromise = fetch("/api/cart")
+      .then((res) => (res.ok ? res.json() : null))
+      .catch((err) => {
+        console.error("Error loading cart:", err);
+        return null;
+      })
+      .finally(() => {
+        setTimeout(() => {
+          sharedCartFetchPromise = null;
+        }, 150);
+      });
+  }
+  return sharedCartFetchPromise;
+}
+
 export function useCart() {
   const [cart, setCart] = useState<CartTotals | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchCart = useCallback(async () => {
     try {
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        const data = await res.json();
+      const data = await getSharedCart();
+      if (data) {
         setCart(data);
       }
     } catch (err) {
@@ -47,6 +65,7 @@ export function useCart() {
       if (res.ok) {
         const updated = await res.json();
         setCart(updated);
+        sharedCartFetchPromise = null;
         window.dispatchEvent(new CustomEvent("echo:cart-updated"));
         return updated;
       }
@@ -65,6 +84,7 @@ export function useCart() {
       if (res.ok) {
         const updated = await res.json();
         setCart(updated);
+        sharedCartFetchPromise = null;
         window.dispatchEvent(new CustomEvent("echo:cart-updated"));
       }
     } catch (err) {
@@ -80,6 +100,7 @@ export function useCart() {
       if (res.ok) {
         const updated = await res.json();
         setCart(updated);
+        sharedCartFetchPromise = null;
         window.dispatchEvent(new CustomEvent("echo:cart-updated"));
       }
     } catch (err) {
