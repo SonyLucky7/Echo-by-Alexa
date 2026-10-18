@@ -31,6 +31,38 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Intercept and silence third-party browser extension errors (e.g. Urban VPN, emulator extensions) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                function isExtension(file, msg) {
+                  return (
+                    (file && (file.indexOf('chrome-extension://') !== -1 || file.indexOf('moz-extension://') !== -1)) ||
+                    (msg && (msg.indexOf('M_ID') !== -1 || msg.indexOf('crxemulator') !== -1))
+                  );
+                }
+                window.addEventListener('error', function(e) {
+                  var file = e.filename || (e.error && e.error.stack) || '';
+                  var msg = e.message || '';
+                  if (isExtension(file, msg)) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+                window.addEventListener('unhandledrejection', function(e) {
+                  var r = e.reason || '';
+                  var str = (r && (r.stack || r.message)) || String(r);
+                  if (isExtension(str, str)) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+              })();
+            `,
+          }}
+        />
       </head>
       <body
         className="min-h-screen bg-ivory text-charcoal selection:bg-ember/20 selection:text-charcoal flex flex-col"
