@@ -29,14 +29,6 @@ export const Footer: React.FC = () => {
       {/* Subtle Atmospheric Ember Glow at Top Center */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-ember/10 blur-[100px] pointer-events-none rounded-full" />
 
-      {/* Grand Architectural Brand Wordmark Banner */}
-      <div className="relative w-full overflow-hidden select-none py-10 sm:py-16 md:py-20 border-b border-ivory/10 bg-black/40 flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-ember/10 via-transparent to-transparent pointer-events-none" />
-        <span className="font-serif text-[15vw] sm:text-[14vw] md:text-[12vw] font-bold tracking-[0.3em] sm:tracking-[0.35em] text-ivory/[0.08] leading-none uppercase select-none text-center block pl-[0.3em]">
-          ECHO
-        </span>
-      </div>
-
       {/* 1. Curated Newsletter / Hearth Journal Banner */}
       <div className="border-b border-ivory/10 bg-ivory/[0.02]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left">
@@ -230,6 +222,14 @@ export const Footer: React.FC = () => {
             </li>
           </ul>
         </div>
+      </div>
+
+      {/* Grand Architectural Brand Wordmark Banner */}
+      <div className="relative w-full overflow-hidden select-none py-10 sm:py-16 md:py-20 border-t border-ivory/10 bg-black/40 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-ember/10 via-transparent to-transparent pointer-events-none" />
+        <span className="font-serif text-[15vw] sm:text-[14vw] md:text-[12vw] font-bold tracking-[0.3em] sm:tracking-[0.35em] text-ivory/[0.08] leading-none uppercase select-none text-center block pl-[0.3em]">
+          ECHO
+        </span>
       </div>
 
       {/* 4. Bottom Copyright & Legal Strip */}
