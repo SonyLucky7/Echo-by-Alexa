@@ -18,7 +18,7 @@ export const Philosophy: React.FC = () => {
           {/* Subtle Editorial Pullquote */}
           <div className="absolute -bottom-6 -right-6 bg-ivory rounded-2xl p-6 shadow-floating border border-charcoal/10 max-w-xs hidden sm:block">
             <p className="font-serif italic text-sm text-charcoal/90 leading-relaxed">
-              "We cook not to mask the ingredient, but to awaken the memory carried within its seed and soil."
+              &ldquo;We cook not to mask the ingredient, but to awaken the memory carried within its seed and soil.&rdquo;
             </p>
             <span className="text-[10px] uppercase tracking-widest text-olive font-medium mt-3 block">
               Chef & Forager

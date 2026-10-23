@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLanguage } from "./useLanguage";
 import { getPromptForLocale } from "@/lib/concierge/prompts";
 
@@ -42,13 +42,15 @@ export function useConcierge() {
   }, [locale]);
 
   // Listen to global open/ask events
+  const sendMessageRef = useRef<(text: string) => Promise<void>>(() => Promise.resolve());
+
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
     const handleAsk = (e: CustomEvent<string>) => {
       setIsOpen(true);
       if (e.detail) {
-        sendMessage(e.detail);
+        sendMessageRef.current(e.detail);
       }
     };
 
@@ -131,6 +133,8 @@ export function useConcierge() {
     },
     [isLoading, locale]
   );
+
+  sendMessageRef.current = sendMessage;
 
   return {
     isOpen,

@@ -88,6 +88,7 @@ export function useVoice() {
   const synthOscillatorIntervalRef = useRef<any>(null);
   const silenceTimerRef = useRef<any>(null);
   const speechCooldownTimerRef = useRef<any>(null);
+  const handleUserUtteranceRef = useRef<(text: string) => Promise<void>>(() => Promise.resolve());
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -230,7 +231,7 @@ export function useVoice() {
           try {
             recognition.stop();
           } catch {}
-          handleUserUtterance(finalUtterance.trim());
+          handleUserUtteranceRef.current(finalUtterance.trim());
           return;
         }
 
@@ -245,7 +246,7 @@ export function useVoice() {
               try {
                 recognition.stop();
               } catch {}
-              handleUserUtterance(liveInterim.trim());
+              handleUserUtteranceRef.current(liveInterim.trim());
             }
           }, 1400);
         }
@@ -422,6 +423,8 @@ export function useVoice() {
     }
   };
 
+  handleUserUtteranceRef.current = handleUserUtterance;
+
   // Start voice session
   const startVoice = async () => {
     cancelAllSpeech();
@@ -469,7 +472,7 @@ export function useVoice() {
   };
 
   // Stop voice session
-  const stopVoice = () => {
+  const stopVoice = useCallback(() => {
     cancelAllSpeech();
     isProcessingRef.current = false;
 
@@ -490,7 +493,7 @@ export function useVoice() {
 
     setVoiceState("idle");
     setInterimTranscript("");
-  };
+  }, [cancelAllSpeech]);
 
   // Toggle Mute / Mic State
   const toggleMute = () => {
@@ -563,7 +566,7 @@ export function useVoice() {
       window.removeEventListener("echo:open-voice", handleOpenVoice);
       window.removeEventListener("echo:close-voice", handleCloseVoice);
     };
-  }, []);
+  }, [stopVoice]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -571,7 +574,7 @@ export function useVoice() {
       stopVoice();
       if (analyserRef.current) analyserRef.current.destroy();
     };
-  }, []);
+  }, [stopVoice]);
 
   return {
     isOpen,

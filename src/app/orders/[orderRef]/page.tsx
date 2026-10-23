@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
@@ -22,22 +22,25 @@ export default function OrderTrackingPage({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrder = async (showRefreshIndicator = false) => {
-    if (showRefreshIndicator) setIsRefreshing(true);
-    try {
-      const res = await fetch(`/api/orders/${orderRef}`);
-      if (!res.ok) {
-        throw new Error("Order not found or access expired.");
+  const fetchOrder = useCallback(
+    async (showRefreshIndicator = false) => {
+      if (showRefreshIndicator) setIsRefreshing(true);
+      try {
+        const res = await fetch(`/api/orders/${orderRef}`);
+        if (!res.ok) {
+          throw new Error("Order not found or access expired.");
+        }
+        const data = await res.json();
+        setOrder(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-      const data = await res.json();
-      setOrder(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+    },
+    [orderRef]
+  );
 
   useEffect(() => {
     fetchOrder();
@@ -48,7 +51,7 @@ export default function OrderTrackingPage({
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [orderRef]);
+  }, [fetchOrder]);
 
   if (isLoading) {
     return (
