@@ -130,22 +130,31 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           {/* Action Controls */}
           <div className="flex items-center gap-3">
-            {/* Animated Luxury Speak Button */}
+            {/* Animated Premium Concierge Speak Button (No Neon, No AI Clichés) */}
             <button
               type="button"
               onClick={onOpenVoice}
-              className="px-4 py-2 rounded-full bg-charcoal hover:bg-black text-ivory text-xs font-medium tracking-wider border border-ember/30 shadow-[0_0_15px_rgba(197,143,88,0.25)] hover:shadow-[0_0_25px_rgba(197,143,88,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2.5"
-              aria-label="Speak"
+              className={`relative overflow-hidden group px-4 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] flex items-center gap-2 cursor-pointer border ${
+                isHeroMode
+                  ? "bg-white/[0.08] hover:bg-white/[0.14] text-ivory border-white/20 hover:border-white/40 backdrop-blur-md shadow-xs"
+                  : "bg-charcoal hover:bg-black text-ivory border-charcoal/20 hover:border-charcoal/40 shadow-xs"
+              }`}
+              aria-label="Speak with Dining Concierge"
             >
-              <Mic className="w-3.5 h-3.5 text-ember-light" />
-              <span className="hidden sm:inline">Speak</span>
-              {/* Dynamic Live Equalizer / Music Beat Lines */}
-              <div className="flex items-center gap-[2.5px] h-4.5 px-0.5" aria-hidden="true">
-                <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-1" />
-                <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-2" />
-                <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-3" />
-                <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-4" />
-              </div>
+              {/* Animated Satin Sheen Gliding Across on Hover */}
+              <span
+                className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none"
+                aria-hidden="true"
+              />
+
+              {/* Minimalist Acoustic Mic with Subtle Hover Reaction */}
+              <span className="relative flex items-center justify-center">
+                <Mic className="w-3.5 h-3.5 text-ember-light group-hover:scale-110 transition-transform duration-200" />
+              </span>
+
+              <span className="relative font-medium tracking-wide">
+                Speak
+              </span>
             </button>
 
             {/* Cart Trigger */}

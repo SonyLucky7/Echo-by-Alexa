@@ -116,7 +116,7 @@ export const VoiceModal: React.FC = () => {
           {/* Headline (Directly Matches Reference Image 1) */}
           <div className="text-center pt-2 pb-1">
             <h2 className="text-2xl sm:text-3xl font-sans font-light tracking-tight text-[#7dd3fc]">
-              Talk to your concierge now
+              Talk to Alexa now
             </h2>
           </div>
 
@@ -268,7 +268,7 @@ export const VoiceModal: React.FC = () => {
               type="button"
               onClick={handleSendPrompt}
               disabled={!textInput.trim()}
-              className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 via-ember to-amber-300 flex items-center justify-center text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shrink-0 cursor-pointer"
+              className="w-8 h-8 rounded-full bg-ember hover:bg-ember-light flex items-center justify-center text-charcoal font-medium shadow-sm hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shrink-0 cursor-pointer"
               aria-label="Send Prompt"
             >
               <ArrowUp className="w-4 h-4" />
