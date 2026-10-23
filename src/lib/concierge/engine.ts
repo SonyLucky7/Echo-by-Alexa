@@ -477,9 +477,13 @@ async function runOpenAIAgent(
       }
     } else {
       // Final response text
-      const replyText =
+      const rawText =
         assistantMsg.content ||
         "I have processed your request. How else may I assist with your dining experience tonight?";
+      const replyText = rawText
+        .replace(/<think>[\s\S]*?<\/think>/gi, "")
+        .replace(/^reasoning:\s*[\s\S]*?\n\n/gi, "")
+        .trim() || "How else may I assist with your dining experience tonight?";
       await recordMessage(
         conv.conversationId,
         "assistant",
@@ -809,7 +813,27 @@ export async function processConciergeTurn(
   // Record user's turn in DB
   await recordMessage(conv.conversationId, "user", userMessage);
 
-  // 1. Grok / xAI Autonomous Agent takes priority
+  // 1. Groq Autonomous Agent (Ultra-fast inference via Groq Cloud)
+  if (config.groqApiKey) {
+    try {
+      const groqRes = await runOpenAIAgent(
+        {
+          apiUrl: config.groqApiUrl || "https://api.groq.com/openai/v1",
+          apiKey: config.groqApiKey,
+          model: config.groqModel || "openai/gpt-oss-120b",
+        },
+        userMessage,
+        session,
+        conv,
+        promptConfig
+      );
+      if (groqRes) return groqRes;
+    } catch (err) {
+      console.warn("Groq agent call failed, attempting fallback provider:", err);
+    }
+  }
+
+  // 2. Grok / xAI Autonomous Agent
   if (config.grokApiKey) {
     try {
       const grokRes = await runOpenAIAgent(

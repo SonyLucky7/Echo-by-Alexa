@@ -8,6 +8,9 @@ const configSchema = z.object({
   aiModel: z.string().default("gemini-2.0-flash"),
   googleAiKey: z.string().optional(),
   openaiKey: z.string().optional(),
+  groqApiKey: z.string().optional(),
+  groqModel: z.string().default("openai/gpt-oss-120b"),
+  groqApiUrl: z.string().default("https://api.groq.com/openai/v1"),
   grokApiKey: z.string().optional(),
   grokModel: z.string().default("grok-beta"),
   grokApiUrl: z.string().default("https://api.x.ai/v1"),
@@ -36,6 +39,11 @@ export function getConfig(): AppConfig {
     aiModel: process.env.AI_MODEL || "gemini-2.0-flash",
     googleAiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     openaiKey: process.env.OPENAI_API_KEY,
+    groqApiKey:
+      process.env.GROQ_API_KEY ||
+      (process.env.GROK_API_KEY?.startsWith("gsk_") ? process.env.GROK_API_KEY : undefined),
+    groqModel: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
+    groqApiUrl: process.env.GROQ_API_URL || "https://api.groq.com/openai/v1",
     grokApiKey: process.env.GROK_API_KEY || process.env.XAI_API_KEY,
     grokModel: process.env.GROK_MODEL || "grok-beta",
     grokApiUrl: process.env.GROK_API_URL || "https://api.x.ai/v1",

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { RealAudioAnalyser } from "@/lib/voice/webaudio";
 import { getPromptForLocale } from "@/lib/concierge/prompts";
-import { SupportedLocale } from "@/types";
 
 export type VoiceState =
   | "idle"
@@ -33,11 +32,11 @@ export function cleanTextForSpeech(text: string): string {
     .replace(/\*(.*?)\*/g, "$1") // Italic *text*
     .replace(/__(.*?)__/g, "$1") // Underline
     .replace(/_(.*?)_/g, "$1") // Italic _text_
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Markdown links [Title](url) -> Title
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Markdown links
     .replace(/`([^`]+)`/g, "$1") // Inline code
     .replace(/```[\s\S]*?```/g, "") // Code blocks
     .replace(/#+\s+/g, "") // Headers
-    .replace(/^\s*[-*+]\s+/gm, "") // Bullet list markers
+    .replace(/^\s*[-*+]\s+/gm, "") // Bullet lists
     .replace(/\$(\d+(?:\.\d{2})?)/g, "$1 dollars") // $38.00 -> 38.00 dollars
     .replace(/&/g, " and ")
     .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, "") // Emojis
@@ -67,25 +66,43 @@ function getBestNaturalVoice(): SpeechSynthesisVoice | null {
 }
 
 export function useVoice() {
-  const locale: SupportedLocale = "en";
   const [isOpen, setIsOpen] = useState(false);
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [transcripts, setTranscripts] = useState<VoiceTranscriptItem[]>([]);
-  const [frequencies, setFrequencies] = useState<number[]>(new Array(16).fill(0));
+  const [frequencies, setFrequencies] = useState<number[]>(new Array(16).fill(0.2));
   const [interimTranscript, setInterimTranscript] = useState<string>("");
   const [isMuted, setIsMuted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Synchronization refs to avoid stale closures in audio/speech callbacks
+  const isOpenRef = useRef(false);
+  const voiceStateRef = useRef<VoiceState>("idle");
+  const isMutedRef = useRef(false);
+  const isProcessingRef = useRef(false);
+
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const analyserRef = useRef<RealAudioAnalyser | null>(null);
   const recognitionRef = useRef<any>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const activeUtteranceRef = useRef<any>(null);
   const animFrameRef = useRef<number | null>(null);
   const synthOscillatorIntervalRef = useRef<any>(null);
   const silenceTimerRef = useRef<any>(null);
+  const speechCooldownTimerRef = useRef<any>(null);
 
-  // Frequency loop: only runs when modal is open and audio is active, throttled to ~30fps
+  // Keep refs in sync with state
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  useEffect(() => {
+    voiceStateRef.current = voiceState;
+  }, [voiceState]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  // Frequency loop: throttled to ~30fps when listening or speaking
   useEffect(() => {
     if (!isOpen || (voiceState !== "speaking" && voiceState !== "listening")) {
       if (animFrameRef.current) {
@@ -99,7 +116,7 @@ export function useVoice() {
     const loop = (timestamp: number) => {
       if (timestamp - lastTime >= 33) {
         lastTime = timestamp;
-        if (analyserRef.current) {
+        if (analyserRef.current && voiceStateRef.current === "listening") {
           const data = analyserRef.current.getFrequencies();
           setFrequencies(data);
         }
@@ -116,44 +133,20 @@ export function useVoice() {
     };
   }, [isOpen, voiceState]);
 
-  // Listen to open/close voice events
-  useEffect(() => {
-    const handleOpenVoice = () => {
-      setIsOpen(true);
-    };
-    const handleCloseVoice = () => {
-      stopVoice();
-      setIsOpen(false);
-    };
-
-    window.addEventListener("echo:open-voice", handleOpenVoice);
-    window.addEventListener("echo:close-voice", handleCloseVoice);
-
-    return () => {
-      window.removeEventListener("echo:open-voice", handleOpenVoice);
-      window.removeEventListener("echo:close-voice", handleCloseVoice);
-    };
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopVoice();
-      if (analyserRef.current) analyserRef.current.destroy();
-    };
-  }, []);
-
-  // Web Speech synthetic audio waveform oscillation so visualizer dances while speaking
+  // Synthetic frequency oscillator so waveform dances smoothly during speech
   const startSynthOscillator = useCallback(() => {
     if (synthOscillatorIntervalRef.current) {
       clearInterval(synthOscillatorIntervalRef.current);
     }
     let phase = 0;
     synthOscillatorIntervalRef.current = setInterval(() => {
-      phase += 0.25;
+      phase += 0.22;
       const simulatedFreqs = Array.from({ length: 16 }, (_, i) => {
-        const val = Math.sin(phase + i * 0.45) * 0.4 + Math.cos(phase * 0.7 + i * 0.3) * 0.35 + 0.35;
-        return Math.max(0.08, Math.min(val, 0.95));
+        const val =
+          Math.sin(phase + i * 0.45) * 0.35 +
+          Math.cos(phase * 0.8 + i * 0.3) * 0.3 +
+          0.35;
+        return Math.max(0.1, Math.min(val, 0.95));
       });
       setFrequencies(simulatedFreqs);
     }, 45);
@@ -164,28 +157,40 @@ export function useVoice() {
       clearInterval(synthOscillatorIntervalRef.current);
       synthOscillatorIntervalRef.current = null;
     }
+    setFrequencies(new Array(16).fill(0.2));
   }, []);
 
-  // Start speech recognition with live interim transcription and silence timeout
+  // Stop any active speech immediately
+  const cancelAllSpeech = useCallback(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    stopSynthOscillator();
+    activeUtteranceRef.current = null;
+  }, [stopSynthOscillator]);
+
+  // Safely start listening with SpeechRecognition
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
+    if (isMutedRef.current || !isOpenRef.current) return;
 
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setErrorMessage("Voice recognition not supported in this browser. Please use text prompt.");
-      setVoiceState("error");
+      setErrorMessage("Speech recognition not available. Please type your message.");
       return;
     }
 
-    try {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.abort();
-        } catch {}
-      }
+    // Stop existing instance
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {}
+      recognitionRef.current = null;
+    }
 
+    try {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -198,6 +203,11 @@ export function useVoice() {
       };
 
       recognition.onresult = (event: any) => {
+        // Do not process microphone input while assistant is responding or speaking!
+        if (isProcessingRef.current || voiceStateRef.current === "speaking") {
+          return;
+        }
+
         let liveInterim = "";
         let finalUtterance = "";
 
@@ -210,41 +220,54 @@ export function useVoice() {
           }
         }
 
+        if (finalUtterance.trim()) {
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+          setInterimTranscript("");
+          // Lock to prevent duplicate calls
+          try {
+            recognition.stop();
+          } catch {}
+          handleUserUtterance(finalUtterance.trim());
+          return;
+        }
+
         if (liveInterim.trim()) {
           setInterimTranscript(liveInterim.trim());
 
-          // Reset silence timer: if user stops speaking for 1.3s, finalize
+          // Silence timeout: if user pauses for 1.4s, finalize and send
           if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
           silenceTimerRef.current = setTimeout(() => {
-            if (liveInterim.trim()) {
+            if (liveInterim.trim() && !isProcessingRef.current) {
               setInterimTranscript("");
+              try {
+                recognition.stop();
+              } catch {}
               handleUserUtterance(liveInterim.trim());
             }
-          }, 1300);
-        }
-
-        if (finalUtterance.trim()) {
-          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-          setInterimTranscript("");
-          handleUserUtterance(finalUtterance.trim());
+          }, 1400);
         }
       };
 
       recognition.onerror = (e: any) => {
-        if (e.error === "no-speech") {
-          // Gracefully continue listening
-          return;
-        }
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-          setErrorMessage("Microphone access was denied. Please allow microphone permissions.");
+        if (e.error === "no-speech") return;
+        if (e.error === "not-allowed") {
+          setErrorMessage("Microphone access denied. Please enable mic permissions.");
           setVoiceState("error");
         }
       };
 
       recognition.onend = () => {
         setInterimTranscript("");
-        // Automatically restart if still in listening state and unmuted
-        if (voiceState === "listening" && !isMuted) {
+        // Automatically restart only if we're still supposed to be listening
+        if (
+          isOpenRef.current &&
+          !isMutedRef.current &&
+          !isProcessingRef.current &&
+          voiceStateRef.current === "listening"
+        ) {
           try {
             recognition.start();
           } catch {}
@@ -254,26 +277,40 @@ export function useVoice() {
       recognitionRef.current = recognition;
       recognition.start();
     } catch (err) {
-      console.warn("Speech recognition failed to start:", err);
+      console.warn("Could not start speech recognition:", err);
     }
-  }, [isMuted, voiceState]);
+  }, []);
 
-  // High-Quality Web Speech synthesis with natural voice, anti-garbage-collection ref, and waveform
-  const fallbackWebSpeech = useCallback(
-    (rawText: string) => {
+  // Single reliable speech synthesis function (NO overlapping audio!)
+  const speakResponse = useCallback(
+    (text: string) => {
+      cancelAllSpeech();
+
+      // Pause speech recognition while the assistant is speaking so it doesn't hear itself!
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {}
+      }
+
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        isProcessingRef.current = false;
         setVoiceState("listening");
         startListening();
         return;
       }
 
-      window.speechSynthesis.cancel();
-      stopSynthOscillator();
+      const spokenText = cleanTextForSpeech(text);
+      if (!spokenText) {
+        isProcessingRef.current = false;
+        setVoiceState("listening");
+        startListening();
+        return;
+      }
 
-      const spokenText = cleanTextForSpeech(rawText);
       const utterance = new SpeechSynthesisUtterance(spokenText);
       utterance.lang = "en-US";
-      utterance.rate = 1.02; // Crisp natural cadence
+      utterance.rate = 1.0;
       utterance.pitch = 1.0;
 
       const naturalVoice = getBestNaturalVoice();
@@ -281,100 +318,57 @@ export function useVoice() {
         utterance.voice = naturalVoice;
       }
 
-      // Keep utterance in ref to avoid Chromium GC bug
       activeUtteranceRef.current = utterance;
-
       setVoiceState("speaking");
       startSynthOscillator();
 
-      // Chromium keep-alive heartbeat
-      const heartbeat = setInterval(() => {
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
-        } else {
-          clearInterval(heartbeat);
-        }
-      }, 5000);
-
-      utterance.onend = () => {
-        clearInterval(heartbeat);
+      const finishSpeech = () => {
         stopSynthOscillator();
         activeUtteranceRef.current = null;
-        setVoiceState("listening");
-        startListening();
+        isProcessingRef.current = false;
+
+        // 350ms cooldown before re-opening microphone to avoid speaker echo
+        if (speechCooldownTimerRef.current) clearTimeout(speechCooldownTimerRef.current);
+        speechCooldownTimerRef.current = setTimeout(() => {
+          if (isOpenRef.current && !isMutedRef.current) {
+            setVoiceState("listening");
+            startListening();
+          } else {
+            setVoiceState("idle");
+          }
+        }, 350);
       };
 
-      utterance.onerror = () => {
-        clearInterval(heartbeat);
-        stopSynthOscillator();
-        activeUtteranceRef.current = null;
-        setVoiceState("listening");
-        startListening();
-      };
+      utterance.onend = finishSpeech;
+      utterance.onerror = finishSpeech;
 
       window.speechSynthesis.speak(utterance);
     },
-    [startListening, startSynthOscillator, stopSynthOscillator]
+    [cancelAllSpeech, startListening, startSynthOscillator, stopSynthOscillator]
   );
 
-  // Speak response using ElevenLabs TTS or Natural Web Speech
-  const speakResponse = useCallback(
-    async (text: string) => {
-      setVoiceState("speaking");
-      const spokenText = cleanTextForSpeech(text);
-
-      try {
-        const resp = await fetch("/api/voice/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: spokenText, locale: "en" }),
-        });
-
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const audioUrl = URL.createObjectURL(blob);
-          const audio = new Audio(audioUrl);
-          audioElementRef.current = audio;
-
-          if (analyserRef.current) {
-            analyserRef.current.attachAudioElement(audio);
-          }
-
-          audio.onended = () => {
-            setVoiceState("listening");
-            startListening();
-          };
-          audio.onerror = () => {
-            fallbackWebSpeech(spokenText);
-          };
-
-          await audio.play();
-          return;
-        }
-      } catch (err) {
-        console.warn("ElevenLabs TTS unavailable, using enhanced Web Speech:", err);
-      }
-
-      fallbackWebSpeech(spokenText);
-    },
-    [fallbackWebSpeech, startListening]
-  );
-
-  // Master handler for user utterance (from speech or typed prompt)
+  // Master handler for user message turn (with single-inflight guard)
   const handleUserUtterance = async (speech: string) => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
     if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
+        recognitionRef.current.abort();
       } catch {}
     }
     setInterimTranscript("");
+    cancelAllSpeech();
 
     const cleanInput = speech.trim();
-    if (!cleanInput) return;
+    if (!cleanInput) {
+      isProcessingRef.current = false;
+      return;
+    }
 
     setVoiceState("processing");
     setTranscripts((prev) => [
@@ -416,10 +410,10 @@ export function useVoice() {
         window.dispatchEvent(new CustomEvent("echo:cart-updated"));
       }
 
-      // Speak response aloud in English
+      // Speak response aloud with single voice
       speakResponse(reply);
     } catch (err: any) {
-      const errReply = "I could not fully hear you. Could you please repeat that?";
+      const errReply = "I could not hear clearly. Could you please repeat that?";
       setTranscripts((prev) => [
         ...prev,
         { speaker: "concierge", text: errReply, timestamp: new Date() },
@@ -428,25 +422,26 @@ export function useVoice() {
     }
   };
 
-  // Start voice session with authentic welcome audio
+  // Start voice session
   const startVoice = async () => {
+    cancelAllSpeech();
     setVoiceState("connecting");
     setErrorMessage(null);
     setInterimTranscript("");
+    isProcessingRef.current = false;
 
     try {
-      // 1. Request microphone access
+      // 1. Request microphone access for real analyser
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      // 2. Attach to real audio analyser
       if (!analyserRef.current) {
         analyserRef.current = new RealAudioAnalyser(stream);
       } else {
         analyserRef.current.attachStream(stream);
       }
 
-      // 3. Welcome user with natural voice audio
+      // 2. Set welcome greeting message
       const promptConfig = getPromptForLocale("en");
       setTranscripts([
         {
@@ -456,26 +451,10 @@ export function useVoice() {
         },
       ]);
 
-      setVoiceState("speaking");
-      const audio = new Audio("/audio/welcome.mp3");
-      audioElementRef.current = audio;
-
-      if (analyserRef.current) {
-        analyserRef.current.attachAudioElement(audio);
-      }
-
-      audio.onended = () => {
-        setVoiceState("listening");
-        startListening();
-      };
-
-      audio.onerror = () => {
-        speakResponse(promptConfig.welcomeGreeting);
-      };
-
-      await audio.play();
+      // 3. Speak the welcome greeting with single clean voice
+      speakResponse(promptConfig.welcomeGreeting);
     } catch (err: any) {
-      console.warn("Microphone access or audio init fallback:", err);
+      console.warn("Microphone access prompt:", err);
       const promptConfig = getPromptForLocale("en");
       setTranscripts([
         {
@@ -484,61 +463,115 @@ export function useVoice() {
           timestamp: new Date(),
         },
       ]);
-      const audio = new Audio("/audio/welcome.mp3");
-      audioElementRef.current = audio;
-      audio.play().catch(() => {});
-      setVoiceState("idle");
+      // Still speak greeting cleanly
+      speakResponse(promptConfig.welcomeGreeting);
     }
   };
 
+  // Stop voice session
   const stopVoice = () => {
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-    stopSynthOscillator();
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
+    cancelAllSpeech();
+    isProcessingRef.current = false;
+
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (speechCooldownTimerRef.current) clearTimeout(speechCooldownTimerRef.current);
+
     if (recognitionRef.current) {
       try {
         recognitionRef.current.abort();
       } catch {}
       recognitionRef.current = null;
     }
-    if (audioElementRef.current) {
-      audioElementRef.current.pause();
-      audioElementRef.current = null;
+
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
     }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    activeUtteranceRef.current = null;
+
     setVoiceState("idle");
     setInterimTranscript("");
-    setFrequencies(new Array(16).fill(0));
   };
 
+  // Toggle Mute / Mic State
   const toggleMute = () => {
-    if (!mediaStreamRef.current) return;
-    const nextMuted = !isMuted;
-    mediaStreamRef.current.getAudioTracks().forEach((t) => {
-      t.enabled = !nextMuted;
-    });
-    setIsMuted(nextMuted);
-    if (nextMuted) {
-      setVoiceState("muted");
+    if (isMuted) {
+      setIsMuted(false);
+      isMutedRef.current = false;
+      setVoiceState("listening");
+      startListening();
+    } else {
+      cancelAllSpeech();
+      setIsMuted(true);
+      isMutedRef.current = true;
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
         } catch {}
       }
+      setVoiceState("muted");
+    }
+  };
+
+  // Handle direct Mic button tap on the input bar
+  const handleMicTap = () => {
+    if (voiceState === "speaking") {
+      // Interrupt assistant speech immediately and start listening to user!
+      cancelAllSpeech();
+      isProcessingRef.current = false;
+      setIsMuted(false);
+      isMutedRef.current = false;
+      setVoiceState("listening");
+      startListening();
+    } else if (voiceState === "listening") {
+      // Stop listening
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {}
+      }
+      setVoiceState("idle");
     } else {
+      // Start listening
+      setIsMuted(false);
+      isMutedRef.current = false;
       setVoiceState("listening");
       startListening();
     }
   };
+
+  const closeVoice = () => {
+    stopVoice();
+    setIsOpen(false);
+  };
+
+  const sendMessage = (text: string) => {
+    handleUserUtterance(text);
+  };
+
+  // Listen to custom open/close events
+  useEffect(() => {
+    const handleOpenVoice = () => setIsOpen(true);
+    const handleCloseVoice = () => {
+      stopVoice();
+      setIsOpen(false);
+    };
+
+    window.addEventListener("echo:open-voice", handleOpenVoice);
+    window.addEventListener("echo:close-voice", handleCloseVoice);
+
+    return () => {
+      window.removeEventListener("echo:open-voice", handleOpenVoice);
+      window.removeEventListener("echo:close-voice", handleCloseVoice);
+    };
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopVoice();
+      if (analyserRef.current) analyserRef.current.destroy();
+    };
+  }, []);
 
   return {
     isOpen,
@@ -549,14 +582,11 @@ export function useVoice() {
     interimTranscript,
     isMuted,
     errorMessage,
-    locale,
     startVoice,
     stopVoice,
     toggleMute,
-    sendMessage: handleUserUtterance,
-    closeVoice: () => {
-      stopVoice();
-      setIsOpen(false);
-    },
+    handleMicTap,
+    closeVoice,
+    sendMessage,
   };
 }
