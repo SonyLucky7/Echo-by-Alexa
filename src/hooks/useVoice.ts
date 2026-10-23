@@ -27,6 +27,21 @@ export interface VoiceTranscriptItem {
  */
 export function cleanTextForSpeech(text: string): string {
   if (!text) return "";
+
+  // If text starts with JSON array or object, parse human content
+  if (text.startsWith("[") || text.startsWith("{") || text.includes('"name":') || text.includes('"id":')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed) && parsed[0]?.name) {
+        text = `Tonight from our wood-fire hearth, we feature ${parsed.slice(0, 2).map((d: any) => d.name).join(" and ")}.`;
+      } else if (parsed.message) {
+        text = parsed.message;
+      }
+    } catch {
+      text = text.replace(/"[^"]*":/g, "").replace(/[{}[\]_"]+/g, " ");
+    }
+  }
+
   return text
     .replace(/\*\*(.*?)\*\*/g, "$1") // Bold **text**
     .replace(/\*(.*?)\*/g, "$1") // Italic *text*
@@ -40,29 +55,39 @@ export function cleanTextForSpeech(text: string): string {
     .replace(/\$(\d+(?:\.\d{2})?)/g, "$1 dollars") // $38.00 -> 38.00 dollars
     .replace(/&/g, " and ")
     .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, "") // Emojis
+    .replace(/[{}[\]_"\\]+/g, " ") // Strip any leftover braces, brackets, quotes
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/**
- * Finds the highest quality, human-sounding English voice available on the client device
- */
-function getBestNaturalVoice(): SpeechSynthesisVoice | null {
+// Module-level locked voice reference to ensure 1 consistent voice across entire session
+let selectedVoice: SpeechSynthesisVoice | null = null;
+
+function resolveBestVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return null;
 
   const englishVoices = voices.filter((v) => v.lang.startsWith("en"));
-  return (
-    englishVoices.find((v) => v.name.includes("Natural") || v.name.includes("Online")) ||
-    englishVoices.find((v) => v.name.includes("Google") && v.lang.includes("US")) ||
-    englishVoices.find((v) => v.name.includes("Samantha")) ||
+  const chosen =
+    englishVoices.find((v) => v.name.includes("Natural") || v.name.includes("Online (Natural)")) ||
+    englishVoices.find((v) => v.name.includes("Google") && (v.lang === "en-US" || v.lang === "en_US")) ||
     englishVoices.find((v) => v.name.includes("Jenny")) ||
-    englishVoices.find((v) => v.name.includes("Guy")) ||
     englishVoices.find((v) => v.name.includes("Aria")) ||
+    englishVoices.find((v) => v.name.includes("Samantha")) ||
     englishVoices[0] ||
-    voices[0]
-  );
+    voices[0];
+
+  selectedVoice = chosen;
+  return chosen;
+}
+
+/**
+ * Finds the single highest quality, human-sounding English voice available on the client device
+ */
+export function getBestNaturalVoice(): SpeechSynthesisVoice | null {
+  if (selectedVoice) return selectedVoice;
+  return resolveBestVoice();
 }
 
 export function useVoice() {
@@ -102,6 +127,22 @@ export function useVoice() {
   useEffect(() => {
     isMutedRef.current = isMuted;
   }, [isMuted]);
+
+  // Pre-load natural voices on client mount so greeting always uses the highest quality voice
+  useEffect(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      resolveBestVoice();
+      const onVoicesChanged = () => {
+        resolveBestVoice();
+      };
+      window.speechSynthesis.onvoiceschanged = onVoicesChanged;
+      return () => {
+        if (window.speechSynthesis.onvoiceschanged === onVoicesChanged) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
+      };
+    }
+  }, []);
 
   // Frequency loop: throttled to ~30fps when listening or speaking
   useEffect(() => {
@@ -262,16 +303,25 @@ export function useVoice() {
 
       recognition.onend = () => {
         setInterimTranscript("");
-        // Automatically restart only if we're still supposed to be listening
+        // Automatically restart after 100ms debounce only if we're still in listening state
         if (
           isOpenRef.current &&
           !isMutedRef.current &&
           !isProcessingRef.current &&
           voiceStateRef.current === "listening"
         ) {
-          try {
-            recognition.start();
-          } catch {}
+          setTimeout(() => {
+            if (
+              isOpenRef.current &&
+              !isMutedRef.current &&
+              !isProcessingRef.current &&
+              voiceStateRef.current === "listening"
+            ) {
+              try {
+                recognition.start();
+              } catch {}
+            }
+          }, 100);
         }
       };
 
@@ -323,7 +373,16 @@ export function useVoice() {
       setVoiceState("speaking");
       startSynthOscillator();
 
+      if (window.speechSynthesis.paused) {
+        try {
+          window.speechSynthesis.resume();
+        } catch {}
+      }
+
+      let safetyWatchdog: any = null;
+
       const finishSpeech = () => {
+        if (safetyWatchdog) clearTimeout(safetyWatchdog);
         stopSynthOscillator();
         activeUtteranceRef.current = null;
         isProcessingRef.current = false;
@@ -342,6 +401,15 @@ export function useVoice() {
 
       utterance.onend = finishSpeech;
       utterance.onerror = finishSpeech;
+
+      // Chrome safety watchdog: if Chrome drops onend event, transition to listening after calculated duration
+      const wordsCount = spokenText.split(" ").length;
+      const estimatedDurationMs = Math.max(3000, (wordsCount / 2.2) * 1000 + 1500);
+      safetyWatchdog = setTimeout(() => {
+        if (activeUtteranceRef.current === utterance) {
+          finishSpeech();
+        }
+      }, estimatedDurationMs);
 
       window.speechSynthesis.speak(utterance);
     },
@@ -553,7 +621,11 @@ export function useVoice() {
 
   // Listen to custom open/close events
   useEffect(() => {
-    const handleOpenVoice = () => setIsOpen(true);
+    const handleOpenVoice = () => {
+      setVoiceState("idle");
+      setErrorMessage(null);
+      setIsOpen(true);
+    };
     const handleCloseVoice = () => {
       stopVoice();
       setIsOpen(false);

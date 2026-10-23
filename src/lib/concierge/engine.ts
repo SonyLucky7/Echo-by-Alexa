@@ -398,22 +398,62 @@ function sanitizeAssistantReply(
     if (executedResults && executedResults.length > 0) {
       const lastRes = executedResults[executedResults.length - 1]?.result;
       if (lastRes?.message) return lastRes.message;
+      if (Array.isArray(lastRes) && lastRes[0]?.name) {
+        return `Tonight from our open hearth, we're featuring **${lastRes[0].name}** (${lastRes[0].priceFormatted || ""}). Would you like me to add it to your order?`;
+      }
     }
-    return "I have processed your request. How else may I assist with your dining experience tonight?";
+    return "How else may I assist with your dining experience tonight?";
   }
 
   let text = rawText
     .replace(/<think>[\s\S]*?<\/think>/gi, "")
     .replace(/^reasoning:\s*[\s\S]*?\n\n/gi, "")
+    .replace(/```(?:json)?[\s\S]*?```/gi, (m) =>
+      m.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim()
+    )
     .trim();
 
-  // If the model literally dumped raw JSON or tool output:
+  // 1. If model dumped a JSON array: [{"id": ...}] or [...]
+  if (
+    text.startsWith("[") ||
+    text.includes('[{"id":') ||
+    text.includes('[{"slug":') ||
+    text.includes('"[{"') ||
+    (text.startsWith("[") && text.endsWith("]"))
+  ) {
+    try {
+      const arrayMatch = text.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        const parsed = JSON.parse(arrayMatch[0]);
+        if (Array.isArray(parsed)) {
+          if (parsed.length === 0) {
+            text = "I checked our seasonal hearth offerings for those items. Would you like me to recommend our signature wood-fired dishes instead?";
+          } else if (parsed[0]?.name) {
+            const items = parsed.slice(0, 3).map((item: any) => {
+              const price = item.priceFormatted || (item.priceMinor ? `$${(item.priceMinor / 100).toFixed(2)}` : "");
+              return `**${item.name}**${price ? ` (${price})` : ""}`;
+            });
+            text = `Tonight from our open wood-fire hearth, we feature ${items.join(", ")}. Would you like me to tell you more about any of these, or add one to your order?`;
+          }
+        }
+      }
+    } catch {
+      const dishNames = Array.from(text.matchAll(/"name"\s*:\s*"([^"]+)"/g)).map((m) => m[1]);
+      if (dishNames.length > 0) {
+        text = `Tonight from our open hearth, we're featuring ${dishNames.slice(0, 3).join(", ")}. Would you like to order any of these?`;
+      }
+    }
+  }
+
+  // 2. If model dumped a JSON object: {"success": ...} or {"id": ...}
   if (
     text.startsWith("{") ||
     text.includes('{"success":') ||
     text.includes('{"message":') ||
     text.includes('"success":true') ||
-    text.includes('"itemCount":')
+    text.includes('"itemCount":') ||
+    text.includes('"priceMinor":') ||
+    text.includes('"slug":')
   ) {
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -423,8 +463,13 @@ function sanitizeAssistantReply(
           text = parsed.message;
         } else if (parsed.error && typeof parsed.error === "string") {
           text = parsed.error;
+        } else if (parsed.name && (parsed.priceFormatted || parsed.priceMinor)) {
+          const price = parsed.priceFormatted || (parsed.priceMinor ? `$${(parsed.priceMinor / 100).toFixed(2)}` : "");
+          text = `We feature the **${parsed.name}**${price ? ` (${price})` : ""}${parsed.description ? ` — ${parsed.description}` : ""}. Would you like me to add this to your order?`;
+        } else if (parsed.itemCount !== undefined) {
+          text = `You currently have ${parsed.itemCount} item${parsed.itemCount === 1 ? "" : "s"} in your cart (${parsed.formattedTotal || "$0.00"}). Would you like to review them or proceed to checkout?`;
         } else if (parsed.success) {
-          text = "I've added that to your order. Would you like anything else to go with it?";
+          text = "I've added that to your order. Would you like anything else to accompany it?";
         }
       }
     } catch {
@@ -435,13 +480,22 @@ function sanitizeAssistantReply(
     }
   }
 
-  // Fallback if still looks like raw JSON
-  if (text.startsWith("{") && text.endsWith("}")) {
+  // 3. Fallback if text still looks like raw JSON
+  if (
+    text.startsWith("{") ||
+    text.startsWith("[") ||
+    text.includes('"id":') ||
+    text.includes('"slug":') ||
+    text.includes('"priceMinor":')
+  ) {
     if (executedResults && executedResults.length > 0) {
       const lastRes = executedResults[executedResults.length - 1]?.result;
       if (lastRes?.message) return lastRes.message;
+      if (Array.isArray(lastRes) && lastRes[0]?.name) {
+        return `Tonight from our open wood-fire hearth, we feature **${lastRes[0].name}** (${lastRes[0].priceFormatted || ""}). Would you like me to add it to your order?`;
+      }
     }
-    text = "I've updated your dining order. Would you like me to recommend anything else?";
+    text = "Tonight we're featuring dishes cooked over white oak embers. Would you like me to recommend our signature dishes or book a table?";
   }
 
   return text.trim() || "How else may I assist with your dining experience tonight?";
