@@ -26,14 +26,25 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAF7F2;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #414A3E40;
+  background: rgba(65, 74, 62, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #414A3E80;
+  background: rgba(65, 74, 62, 0.5);
+}
+
+/* Hide scrollbar for clean horizontal pill sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  height: 0px;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
