@@ -139,7 +139,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   ? "bg-white/[0.08] hover:bg-white/[0.14] text-ivory border-white/20 hover:border-white/40 backdrop-blur-md shadow-xs"
                   : "bg-charcoal hover:bg-black text-ivory border-charcoal/20 hover:border-charcoal/40 shadow-xs"
               }`}
-              aria-label="Speak with Dining Concierge"
+              aria-label="Speak with Alexa"
             >
               {/* Animated Satin Sheen Gliding Across on Hover */}
               <span
@@ -152,9 +152,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <Mic className="w-3.5 h-3.5 text-ember-light group-hover:scale-110 transition-transform duration-200" />
               </span>
 
-              <span className="relative font-medium tracking-wide">
-                Speak
-              </span>
+              <span className="relative font-medium tracking-wide">Alexa</span>
             </button>
 
             {/* Cart Trigger */}

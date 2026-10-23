@@ -110,7 +110,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           className="w-full flex items-center justify-center gap-2"
         >
           <Mic className="w-4 h-4" />
-          <span>Speak</span>
+          <span>Alexa</span>
         </Button>
 
         <Button
