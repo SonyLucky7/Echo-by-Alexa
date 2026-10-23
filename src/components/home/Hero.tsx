@@ -2,21 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mic, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-export interface HeroProps {
-  onOpenVoice?: () => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
-  const handleVoiceClick = () => {
-    if (onOpenVoice) {
-      onOpenVoice();
-    }
-    window.dispatchEvent(new CustomEvent("echo:open-voice"));
-  };
-
+export const Hero: React.FC = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-6 md:px-12 pt-24 pb-16 overflow-hidden bg-charcoal text-ivory">
       {/* Background Photography with Atmospheric Vignette */}
@@ -33,10 +22,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
-
-        {/* Headline: Max 2 Lines, High Editorial Polish */}
-        <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-ivory leading-[1.1] mb-6 max-w-3xl text-balance">
-          Where Fire Meets <span className="italic font-light text-ember">Wild Terroir</span>
+        {/* Main Typographic Headline */}
+        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-ivory mb-6 text-balance leading-[1.08]">
+          Where Fire Meets <br className="hidden sm:inline" />
+          <span className="italic text-ember font-normal">Wild Terroir</span>
         </h1>
 
         {/* Narrative Description: Concise, Pure Luxury */}
@@ -44,33 +33,18 @@ export const Hero: React.FC<HeroProps> = ({ onOpenVoice }) => {
           An intimate dining sanctuary devoted to open fruitwood embers, cold-foraged botanicals, and heirloom grains.
         </p>
 
-        {/* Primary Actions: Clean, Refined, No Nested Spec Labels */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        {/* Primary Action: Clean & Confident */}
+        <div className="flex items-center justify-center w-full sm:w-auto">
           <Link href="/menu" className="w-full sm:w-auto">
             <Button
               variant="ember"
               size="lg"
-              className="w-full sm:w-auto rounded-full px-8 py-4 text-sm font-medium tracking-wide shadow-floating hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto rounded-full px-8 py-4 text-sm font-medium tracking-wide shadow-floating hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Explore Menu</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-
-          <button
-            type="button"
-            onClick={handleVoiceClick}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/15 hover:border-ivory/30 text-ivory text-sm font-medium tracking-wide transition-all duration-200 group"
-          >
-            <Mic className="w-4 h-4 text-ember group-hover:scale-110 transition-transform" />
-            <span>Speak</span>
-            <div className="flex items-center gap-[2.5px] h-4.5 px-0.5" aria-hidden="true">
-              <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-1" />
-              <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-2" />
-              <span className="w-[2.5px] bg-ember-light rounded-full animate-soundwave-3" />
-              <span className="w-[2.5px] bg-ember rounded-full animate-soundwave-4" />
-            </div>
-          </button>
         </div>
 
         {/* Refined Architectural Status Line */}

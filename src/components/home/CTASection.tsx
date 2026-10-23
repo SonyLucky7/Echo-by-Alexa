@@ -2,31 +2,17 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mic, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-export interface CTASectionProps {
-  onOpenVoice?: () => void;
-}
-
-export const CTASection: React.FC<CTASectionProps> = ({ onOpenVoice }) => {
-  const handleVoice = () => {
-    if (onOpenVoice) onOpenVoice();
-    window.dispatchEvent(new CustomEvent("echo:open-voice"));
-  };
-
+export const CTASection: React.FC = () => {
   return (
-    <section className="py-32 bg-charcoal text-ivory relative overflow-hidden text-center border-t border-ivory/10">
-      {/* Warm ambient hearth glow (GPU-accelerated radial gradient without costly blur filters) */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.12) 0%, transparent 70%)",
-        }}
-      />
+    <section className="relative py-28 px-6 md:px-12 bg-charcoal text-ivory text-center overflow-hidden border-t border-charcoal-muted">
+      {/* Ambient hearth glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-ember/10 blur-[140px] pointer-events-none rounded-full" />
 
-      <div className="relative z-10 max-w-3xl mx-auto px-6 md:px-12">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ember mb-4 block">
+      <div className="relative z-10 max-w-3xl mx-auto">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ember-light mb-4 block font-mono">
           Reservations & Dining
         </span>
         <h2 className="font-serif text-3xl sm:text-5xl font-normal tracking-tight mb-6 text-balance leading-tight">
@@ -41,20 +27,21 @@ export const CTASection: React.FC<CTASectionProps> = ({ onOpenVoice }) => {
             <Button
               variant="ember"
               size="lg"
-              className="w-full sm:w-auto rounded-full px-8 py-4 text-sm font-medium tracking-wide gap-2"
+              className="w-full sm:w-auto rounded-full px-8 py-4 text-sm font-medium tracking-wide gap-2 cursor-pointer"
             >
               <span>View Full Menu</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-          <button
-            type="button"
-            onClick={handleVoice}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full border border-ivory/15 hover:border-ivory/30 text-ivory text-sm font-medium tracking-wide transition-all duration-200"
-          >
-            <Mic className="w-4 h-4 text-ember" />
-            <span>Speak</span>
-          </button>
+
+          <Link href="/reservations" className="w-full sm:w-auto">
+            <button
+              type="button"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-full border border-ivory/20 hover:border-ivory/40 text-ivory text-sm font-medium tracking-wide transition-all duration-200 hover:bg-white/5 cursor-pointer"
+            >
+              <span>Reserve a Table</span>
+            </button>
+          </Link>
         </div>
       </div>
     </section>
