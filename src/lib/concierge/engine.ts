@@ -390,6 +390,63 @@ interface OpenAIAgentOptions {
   headers?: Record<string, string>;
 }
 
+function sanitizeAssistantReply(
+  rawText: string,
+  executedResults?: { tool: string; result: any }[]
+): string {
+  if (!rawText) {
+    if (executedResults && executedResults.length > 0) {
+      const lastRes = executedResults[executedResults.length - 1]?.result;
+      if (lastRes?.message) return lastRes.message;
+    }
+    return "I have processed your request. How else may I assist with your dining experience tonight?";
+  }
+
+  let text = rawText
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/^reasoning:\s*[\s\S]*?\n\n/gi, "")
+    .trim();
+
+  // If the model literally dumped raw JSON or tool output:
+  if (
+    text.startsWith("{") ||
+    text.includes('{"success":') ||
+    text.includes('{"message":') ||
+    text.includes('"success":true') ||
+    text.includes('"itemCount":')
+  ) {
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.message && typeof parsed.message === "string") {
+          text = parsed.message;
+        } else if (parsed.error && typeof parsed.error === "string") {
+          text = parsed.error;
+        } else if (parsed.success) {
+          text = "I've added that to your order. Would you like anything else to go with it?";
+        }
+      }
+    } catch {
+      const msgMatch = text.match(/"message"\s*:\s*"([^"]+)"/);
+      if (msgMatch && msgMatch[1]) {
+        text = msgMatch[1];
+      }
+    }
+  }
+
+  // Fallback if still looks like raw JSON
+  if (text.startsWith("{") && text.endsWith("}")) {
+    if (executedResults && executedResults.length > 0) {
+      const lastRes = executedResults[executedResults.length - 1]?.result;
+      if (lastRes?.message) return lastRes.message;
+    }
+    text = "I've updated your dining order. Would you like me to recommend anything else?";
+  }
+
+  return text.trim() || "How else may I assist with your dining experience tonight?";
+}
+
 // Autonomous Agent Runner for Grok, OpenRouter, and OpenAI
 async function runOpenAIAgent(
   opts: OpenAIAgentOptions,
@@ -477,13 +534,8 @@ async function runOpenAIAgent(
       }
     } else {
       // Final response text
-      const rawText =
-        assistantMsg.content ||
-        "I have processed your request. How else may I assist with your dining experience tonight?";
-      const replyText = rawText
-        .replace(/<think>[\s\S]*?<\/think>/gi, "")
-        .replace(/^reasoning:\s*[\s\S]*?\n\n/gi, "")
-        .trim() || "How else may I assist with your dining experience tonight?";
+      const rawText = assistantMsg.content || "";
+      const replyText = sanitizeAssistantReply(rawText, executedResults);
       await recordMessage(
         conv.conversationId,
         "assistant",
@@ -503,8 +555,8 @@ async function runOpenAIAgent(
   }
 
   const lastMsg = messages[messages.length - 1];
-  const replyText =
-    typeof lastMsg?.content === "string" ? lastMsg.content : "Your dining request has been processed.";
+  const rawLast = typeof lastMsg?.content === "string" ? lastMsg.content : "";
+  const replyText = sanitizeAssistantReply(rawLast, executedResults);
   return {
     text: replyText,
     toolCalls: executedCalls,
