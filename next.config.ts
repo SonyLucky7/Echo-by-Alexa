@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-// Ensure production environment during builds to prevent Pages router fallback
-if (process.env.NODE_ENV !== "development") {
+// Always guarantee production environment during builds and deployments on Vercel
+if (process.env.VERCEL || process.env.CI || process.argv.some((a) => a.includes("build"))) {
   (process.env as any).NODE_ENV = "production";
 }
 
