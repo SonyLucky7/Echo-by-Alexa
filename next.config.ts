@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-// Always guarantee production environment during builds and deployments on Vercel
-if (process.env.VERCEL || process.env.CI || process.argv.some((a) => a.includes("build"))) {
+// Enforce production mode on Vercel and during builds to eliminate development 404 overlay errors
+if (process.env.VERCEL || process.env.CI || process.env.NODE_ENV !== "development") {
   (process.env as any).NODE_ENV = "production";
 }
 
