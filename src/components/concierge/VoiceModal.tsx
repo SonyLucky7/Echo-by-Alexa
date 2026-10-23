@@ -13,6 +13,7 @@ export const VoiceModal: React.FC = () => {
     voiceState,
     transcripts,
     frequencies,
+    interimTranscript,
     isMuted,
     errorMessage,
     startVoice,
@@ -131,6 +132,16 @@ export const VoiceModal: React.FC = () => {
             );
           })}
 
+          {/* Live Interim Speech Utterance (Alexa-style streaming feedback) */}
+          {interimTranscript && (
+            <div className="flex flex-col items-end animate-in fade-in duration-150">
+              <div className="bg-[#1C1612]/90 border border-ember/40 text-ember-light px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl rounded-tr-xs text-sm sm:text-base font-sans max-w-lg shadow-lg flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-ember animate-ping shrink-0" />
+                <span className="italic">{interimTranscript}</span>
+              </div>
+            </div>
+          )}
+
           {/* Processing Indicator */}
           {isProcessing && (
             <div className="flex items-center gap-2 text-ember font-mono text-xs py-1">
@@ -156,8 +167,9 @@ export const VoiceModal: React.FC = () => {
               {[
                 "Tonight's signature wood-fired dishes",
                 "Reserve a table for 2",
+                "Research web: best California wine pairings",
+                "What is koji fermentation and fruitwood cooking?",
                 "Vegan hearth options",
-                "Sommelier wine pairings",
                 "Check my order status",
               ].map((prompt, i) => (
                 <button

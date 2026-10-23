@@ -121,5 +121,21 @@ describe("Integration: 14-Tool Concierge Pipeline", () => {
     );
     expect(removeResult.success).toBe(true);
     expect(removeResult.itemCount).toBe(0);
+
+    // 15. book_table
+    const tableRes = await tools.book_table.execute(
+      { partySize: 2, time: "7:30 PM", seatingArea: "Hearthside Sanctuary" },
+      session
+    );
+    expect(tableRes.type).toBe("reservation");
+    expect(tableRes.availableSlots).toContain("7:30 PM");
+
+    // 16. web_search
+    const searchRes = await tools.web_search.execute(
+      { query: "white oak wood fired gastronomy" },
+      session
+    );
+    expect(searchRes).toHaveProperty("query");
+    expect(Array.isArray(searchRes.results)).toBe(true);
   });
 });

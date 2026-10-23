@@ -113,4 +113,12 @@ describe("AI Concierge Tools & Engine", () => {
     expect(response.toolCalls![0].name).toBe("book_table");
     expect(response.toolResults![0].result.availableSlots.length).toBeGreaterThan(0);
   });
+
+  it("fallback intent engine handles web research inquiry and cites sources", async () => {
+    const response = await executeFallbackIntent("What is the history of fruitwood cooking and gastronomy?", testSession);
+    expect(response.text).toBeDefined();
+    expect(response.toolCalls).toBeDefined();
+    expect(response.toolCalls![0].name).toBe("web_search");
+    expect(response.toolResults![0].result.results.length).toBeGreaterThan(0);
+  });
 });

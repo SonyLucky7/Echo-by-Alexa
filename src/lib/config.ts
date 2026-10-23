@@ -8,6 +8,11 @@ const configSchema = z.object({
   aiModel: z.string().default("gemini-2.0-flash"),
   googleAiKey: z.string().optional(),
   openaiKey: z.string().optional(),
+  grokApiKey: z.string().optional(),
+  grokModel: z.string().default("grok-beta"),
+  grokApiUrl: z.string().default("https://api.x.ai/v1"),
+  openRouterKey: z.string().optional(),
+  openRouterModel: z.string().default("x-ai/grok-2-1212"),
   elevenLabsKey: z.string().optional(),
   elevenLabsAgentId: z.string().optional(),
   elevenLabsVoiceId: z.string().default("tm4rC0Q4St1T4Nq6wyLZ"),
@@ -31,6 +36,11 @@ export function getConfig(): AppConfig {
     aiModel: process.env.AI_MODEL || "gemini-2.0-flash",
     googleAiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     openaiKey: process.env.OPENAI_API_KEY,
+    grokApiKey: process.env.GROK_API_KEY || process.env.XAI_API_KEY,
+    grokModel: process.env.GROK_MODEL || "grok-beta",
+    grokApiUrl: process.env.GROK_API_URL || "https://api.x.ai/v1",
+    openRouterKey: process.env.OPENROUTER_API_KEY,
+    openRouterModel: process.env.OPENROUTER_MODEL || "x-ai/grok-2-1212",
     elevenLabsKey: process.env.ELEVENLABS_API_KEY,
     elevenLabsAgentId: process.env.ELEVENLABS_AGENT_ID,
     elevenLabsVoiceId: process.env.ELEVENLABS_VOICE_ID || "tm4rC0Q4St1T4Nq6wyLZ",
@@ -44,7 +54,12 @@ export function getConfig(): AppConfig {
 
 export function hasAiProvider(): boolean {
   const c = getConfig();
-  return Boolean(c.googleAiKey || c.openaiKey);
+  return Boolean(c.grokApiKey || c.openRouterKey || c.googleAiKey || c.openaiKey);
+}
+
+export function hasGrokProvider(): boolean {
+  const c = getConfig();
+  return Boolean(c.grokApiKey || c.openRouterKey);
 }
 
 export function hasVoiceProvider(): boolean {

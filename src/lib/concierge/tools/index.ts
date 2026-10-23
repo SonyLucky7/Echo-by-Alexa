@@ -6,6 +6,7 @@ import { processSandboxCheckout } from "@/lib/payments/sandbox";
 import { createStripeCheckoutSession } from "@/lib/payments/stripe";
 import { hasPaymentProvider } from "@/lib/config";
 import { SessionContext } from "@/types";
+import { executeWebSearch } from "./webSearch";
 
 export interface ToolDefinition {
   name: string;
@@ -568,6 +569,18 @@ export const tools: Record<string, ToolDefinition> = {
         availableSlots: ["6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM"],
         address: "448 Hearthstone Way · 5.0 ★ Sanctuary Seating",
       };
+    },
+  },
+
+  // 16. web_search
+  web_search: {
+    name: "web_search",
+    description: "Search the live web for culinary knowledge, ingredients, wine pairings, chef techniques, food history, or general questions.",
+    parameters: z.object({
+      query: z.string().describe("Search keywords or query"),
+    }),
+    execute: async (args) => {
+      return executeWebSearch(args.query, 4);
     },
   },
 };

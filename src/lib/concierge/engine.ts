@@ -167,7 +167,347 @@ function buildGeminiToolDeclarations(): FunctionDeclaration[] {
         },
       },
     },
+    {
+      name: "web_search",
+      description: tools.web_search.description,
+      parameters: {
+        type: SchemaType.OBJECT,
+        properties: {
+          query: { type: SchemaType.STRING, description: "Search keywords or query" },
+        },
+        required: ["query"],
+      },
+    },
   ];
+}
+
+// Convert our tool registry to OpenAI / Grok Function format
+function buildOpenAITools() {
+  return [
+    {
+      type: "function",
+      function: {
+        name: "browse_menu",
+        description: tools.browse_menu.description,
+        parameters: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Keyword for dish or ingredient" },
+            category: { type: "string", description: "Category slug e.g. hearth-starters" },
+            spiceMax: { type: "integer", description: "Max spice level 0 to 3" },
+            dietaryFlags: {
+              type: "array",
+              items: { type: "string" },
+              description: "Array of dietary requirements e.g. ['VEGAN', 'GLUTEN_FREE']",
+            },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_item_details",
+        description: tools.get_item_details.description,
+        parameters: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", description: "Dish UUID or slug" },
+          },
+          required: ["itemId"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "recommend_items",
+        description: tools.recommend_items.description,
+        parameters: {
+          type: "object",
+          properties: {
+            tasteNotes: { type: "string", description: "Flavor preferences e.g. smoky, earthy, umami" },
+            dietaryFlags: { type: "array", items: { type: "string" } },
+            occasion: { type: "string", description: "e.g. date night, light lunch, celebration" },
+            pairingPreference: { type: "string", description: "wine or botanical zero-proof" },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "add_to_cart",
+        description: tools.add_to_cart.description,
+        parameters: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", description: "Item ID or slug to add" },
+            quantity: { type: "integer", description: "Quantity (default 1)" },
+            variantId: { type: "string", description: "Optional variant ID" },
+            customizationOptionIds: {
+              type: "array",
+              items: { type: "string" },
+              description: "Option IDs for extras/removals",
+            },
+            specialInstructions: { type: "string" },
+          },
+          required: ["itemId"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "view_cart",
+        description: tools.view_cart.description,
+        parameters: {
+          type: "object",
+          properties: {},
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "update_cart_item",
+        description: tools.update_cart_item.description,
+        parameters: {
+          type: "object",
+          properties: {
+            cartItemId: { type: "string" },
+            quantity: { type: "integer" },
+          },
+          required: ["cartItemId", "quantity"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "remove_from_cart",
+        description: tools.remove_from_cart.description,
+        parameters: {
+          type: "object",
+          properties: {
+            cartItemId: { type: "string" },
+          },
+          required: ["cartItemId"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "prepare_checkout",
+        description: tools.prepare_checkout.description,
+        parameters: {
+          type: "object",
+          properties: {
+            fulfillmentMode: { type: "string", description: "DINE_IN, PICKUP, or DELIVERY" },
+            tableNumber: { type: "string" },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_restaurant_information",
+        description: tools.get_restaurant_information.description,
+        parameters: {
+          type: "object",
+          properties: {},
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_order_status",
+        description: tools.get_order_status.description,
+        parameters: {
+          type: "object",
+          properties: {
+            orderRef: { type: "string", description: "Order reference e.g. ECHO-1234" },
+          },
+          required: ["orderRef"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "cancel_order",
+        description: tools.cancel_order.description,
+        parameters: {
+          type: "object",
+          properties: {
+            orderRef: { type: "string" },
+            reason: { type: "string" },
+          },
+          required: ["orderRef"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "book_table",
+        description: tools.book_table.description,
+        parameters: {
+          type: "object",
+          properties: {
+            partySize: { type: "integer", description: "Number of guests (default 2)" },
+            date: { type: "string", description: "Date e.g. tonight or tomorrow" },
+            time: { type: "string", description: "Preferred time e.g. 7:00 PM" },
+            seatingArea: { type: "string", description: "Hearthside, Main Dining Room, or Botanical Patio" },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "web_search",
+        description: tools.web_search.description,
+        parameters: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Search keywords or query" },
+          },
+          required: ["query"],
+        },
+      },
+    },
+  ];
+}
+
+interface OpenAIAgentOptions {
+  apiUrl: string;
+  apiKey: string;
+  model: string;
+  headers?: Record<string, string>;
+}
+
+// Autonomous Agent Runner for Grok, OpenRouter, and OpenAI
+async function runOpenAIAgent(
+  opts: OpenAIAgentOptions,
+  userMessage: string,
+  session: SessionContext,
+  conv: any,
+  promptConfig: any
+): Promise<ConciergeResponse | null> {
+  const toolsSchema = buildOpenAITools();
+  const messages: any[] = [
+    { role: "system", content: promptConfig.systemPrompt },
+    ...conv.recentMessages.slice(-10).map((m: any) => ({
+      role: m.role,
+      content: m.content,
+    })),
+    { role: "user", content: userMessage },
+  ];
+
+  const executedCalls: { name: string; args: any }[] = [];
+  const executedResults: { tool: string; result: any }[] = [];
+  let iterations = 0;
+
+  while (iterations < 4) {
+    iterations++;
+    const res = await fetch(`${opts.apiUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${opts.apiKey}`,
+        ...(opts.headers || {}),
+      },
+      body: JSON.stringify({
+        model: opts.model,
+        messages,
+        tools: toolsSchema,
+        tool_choice: "auto",
+        temperature: 0.3,
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.warn(`OpenAI/Grok agent request failed [${res.status}]:`, errBody);
+      return null;
+    }
+
+    const data = await res.json();
+    const choice = data.choices?.[0];
+    if (!choice || !choice.message) {
+      return null;
+    }
+
+    const assistantMsg = choice.message;
+    messages.push(assistantMsg);
+
+    if (assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
+      for (const call of assistantMsg.tool_calls) {
+        const fnName = call.function.name;
+        let fnArgs = {};
+        try {
+          fnArgs = JSON.parse(call.function.arguments || "{}");
+        } catch {
+          fnArgs = {};
+        }
+
+        const toolDef = tools[fnName];
+        let toolOutput: any;
+        if (toolDef) {
+          try {
+            toolOutput = await toolDef.execute(fnArgs, session);
+            executedCalls.push({ name: fnName, args: fnArgs });
+            executedResults.push({ tool: fnName, result: toolOutput });
+          } catch (err: any) {
+            toolOutput = { error: err.message || "Execution error" };
+          }
+        } else {
+          toolOutput = { error: `Tool ${fnName} not recognized` };
+        }
+
+        messages.push({
+          role: "tool",
+          tool_call_id: call.id,
+          content: JSON.stringify(toolOutput),
+        });
+      }
+    } else {
+      // Final response text
+      const replyText =
+        assistantMsg.content ||
+        "I have processed your request. How else may I assist with your dining experience tonight?";
+      await recordMessage(
+        conv.conversationId,
+        "assistant",
+        replyText,
+        executedCalls.length > 0 ? executedCalls : undefined,
+        executedResults.length > 0 ? executedResults : undefined
+      );
+
+      return {
+        text: replyText,
+        toolCalls: executedCalls,
+        toolResults: executedResults,
+        conversationId: conv.conversationId,
+        suggestions: promptConfig.sampleQuestions.slice(0, 3),
+      };
+    }
+  }
+
+  const lastMsg = messages[messages.length - 1];
+  const replyText =
+    typeof lastMsg?.content === "string" ? lastMsg.content : "Your dining request has been processed.";
+  return {
+    text: replyText,
+    toolCalls: executedCalls,
+    toolResults: executedResults,
+    conversationId: conv.conversationId,
+    suggestions: promptConfig.sampleQuestions.slice(0, 3),
+  };
 }
 
 // Deterministic Semantic Intent Router for offline / fallback / zero-credential mode
@@ -184,7 +524,6 @@ export async function executeFallbackIntent(
   if (orderRefMatch || q.includes("status") || q.includes("track my order") || q.includes("where is my order")) {
     let ref = orderRefMatch ? orderRefMatch[0].toUpperCase() : undefined;
     if (!ref) {
-      // Find latest order for this session
       const latestOrder = await db.order.findFirst({
         where: { guestSessionId: session.sessionId },
         orderBy: { createdAt: "desc" },
@@ -197,8 +536,14 @@ export async function executeFallbackIntent(
       const text = result.error
         ? `I could not locate an active order with reference ${ref}. Would you like me to verify your recent order history?`
         : `Order ${result.orderRef} is currently **${result.status}** (${result.fulfillmentMode}). Payment status: ${result.payment}. Total: ${result.total}.`;
-      
-      await recordMessage(conv.conversationId, "assistant", text, [{ name: "get_order_status", args: { orderRef: ref } }], [{ tool: "get_order_status", result }]);
+
+      await recordMessage(
+        conv.conversationId,
+        "assistant",
+        text,
+        [{ name: "get_order_status", args: { orderRef: ref } }],
+        [{ tool: "get_order_status", result }]
+      );
       return {
         text,
         toolCalls: [{ name: "get_order_status", args: { orderRef: ref } }],
@@ -212,17 +557,19 @@ export async function executeFallbackIntent(
   // 2. Cart management intents
   if (q.includes("cart") || q.includes("my bag") || q.includes("show cart") || q.includes("what did i order")) {
     const result = await tools.view_cart.execute({}, session);
-    const text = result.itemCount === 0
-      ? "Your cart is empty right now. Want me to suggest something?"
-      : `You've got ${result.itemCount} item${result.itemCount > 1 ? "s" : ""} in your cart, totaling ${result.formattedTotal}. Ready to check out, or want to add more?`;
-    
+    const text =
+      result.itemCount === 0
+        ? "Your cart is empty right now. Want me to suggest something?"
+        : `You've got ${result.itemCount} item${result.itemCount > 1 ? "s" : ""} in your cart, totaling ${result.formattedTotal}. Ready to check out, or want to add more?`;
+
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "view_cart", args: {} }], [{ tool: "view_cart", result }]);
     return {
       text,
       toolCalls: [{ name: "view_cart", args: {} }],
       toolResults: [{ tool: "view_cart", result }],
       conversationId: conv.conversationId,
-      suggestions: result.itemCount > 0 ? ["Proceed to checkout", "Explore dessert", "Clear cart"] : ["View starters", "Chef recommendations"],
+      suggestions:
+        result.itemCount > 0 ? ["Proceed to checkout", "Explore dessert", "Clear cart"] : ["View starters", "Chef recommendations"],
     };
   }
 
@@ -245,7 +592,7 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 4. Table booking / reservation intent (e.g. "book a table", "table for 2", "reserve tonight")
+  // 4. Table booking / reservation intent
   if (
     q.includes("book") ||
     q.includes("table") ||
@@ -274,9 +621,14 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 5. Add to cart intent (e.g. "add ember flatbread", "order duck", "add sourdough")
-  if (q.startsWith("add ") || q.includes("add to cart") || q.startsWith("order ") || q.includes("i'd like the ") || q.includes("i want the ")) {
-    // Find matching dish from db
+  // 5. Add to cart intent
+  if (
+    q.startsWith("add ") ||
+    q.includes("add to cart") ||
+    q.startsWith("order ") ||
+    q.includes("i'd like the ") ||
+    q.includes("i want the ")
+  ) {
     const allDishes = await db.menuItem.findMany({ where: { isAvailable: true } });
     const matched = allDishes.find((d) => {
       const name = d.name.toLowerCase();
@@ -285,12 +637,17 @@ export async function executeFallbackIntent(
     });
 
     if (matched) {
-      // Check quantity mentioned
       const numMatch = q.match(/\b([1-9])\b/);
       const qty = numMatch ? parseInt(numMatch[1], 10) : 1;
       const result = await tools.add_to_cart.execute({ itemId: matched.id, quantity: qty }, session);
       const text = `Added ${qty}x **${matched.name}** ($${(matched.basePriceMinor / 100).toFixed(2)}) to your cart. Total so far: ${result.summary.formattedSubtotal}.`;
-      await recordMessage(conv.conversationId, "assistant", text, [{ name: "add_to_cart", args: { itemId: matched.id, quantity: qty } }], [{ tool: "add_to_cart", result }]);
+      await recordMessage(
+        conv.conversationId,
+        "assistant",
+        text,
+        [{ name: "add_to_cart", args: { itemId: matched.id, quantity: qty } }],
+        [{ tool: "add_to_cart", result }]
+      );
       return {
         text,
         toolCalls: [{ name: "add_to_cart", args: { itemId: matched.id, quantity: qty } }],
@@ -301,7 +658,51 @@ export async function executeFallbackIntent(
     }
   }
 
-  // 6. Dietary inquiries (vegan, vegetarian, gluten-free, dairy-free)
+  // 6. Live Web Research Intent (Alexa-like web research on external/general topics)
+  const isWebResearchQuery =
+    q.includes("search") ||
+    q.includes("research") ||
+    q.includes("who is") ||
+    q.includes("what is") ||
+    q.includes("what are") ||
+    q.includes("history") ||
+    q.includes("origin") ||
+    q.includes("how does") ||
+    q.includes("how to") ||
+    q.includes("tell me about") ||
+    q.includes("michelin") ||
+    q.includes("james beard") ||
+    q.includes("weather") ||
+    q.includes("sommelier") ||
+    q.includes("fermentation") ||
+    q.includes("recipe") ||
+    q.includes("technique");
+
+  if (isWebResearchQuery) {
+    const searchRes = await tools.web_search.execute({ query: userMessage }, session);
+    if (searchRes.results && searchRes.results.length > 0) {
+      const top = searchRes.results[0];
+      const second = searchRes.results[1];
+      const text = `${top.snippet}${second ? ` ${second.snippet}` : ""} (Source: ${top.title})`;
+
+      await recordMessage(
+        conv.conversationId,
+        "assistant",
+        text,
+        [{ name: "web_search", args: { query: userMessage } }],
+        [{ tool: "web_search", result: searchRes }]
+      );
+      return {
+        text,
+        toolCalls: [{ name: "web_search", args: { query: userMessage } }],
+        toolResults: [{ tool: "web_search", result: searchRes }],
+        conversationId: conv.conversationId,
+        suggestions: ["Explore our hearth menu", "Book a table for 2", "Tonight's specials"],
+      };
+    }
+  }
+
+  // 7. Dietary inquiries
   const isVegan = q.includes("vegan");
   const isVegetarian = q.includes("vegetarian") || q.includes("veg ");
   const isGlutenFree = q.includes("gluten") || q.includes("celiac");
@@ -325,7 +726,7 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 7. Recommendations / pairing inquiries / what to eat
+  // 8. Recommendations / pairing inquiries
   if (
     q.includes("recommend") ||
     q.includes("suggestion") ||
@@ -357,8 +758,15 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 8. Restaurant information (hours, address, philosophy)
-  if (q.includes("hours") || q.includes("address") || q.includes("location") || q.includes("phone") || q.includes("contact") || q.includes("parking")) {
+  // 9. Restaurant information (hours, address, philosophy)
+  if (
+    q.includes("hours") ||
+    q.includes("address") ||
+    q.includes("location") ||
+    q.includes("phone") ||
+    q.includes("contact") ||
+    q.includes("parking")
+  ) {
     const result = await tools.get_restaurant_information.execute({}, session);
     const text = `We're at **${result.address}**, open **${result.hours}**. Call us at **${result.phone}** if you need anything.`;
     await recordMessage(conv.conversationId, "assistant", text, [{ name: "get_restaurant_information", args: {} }], [{ tool: "get_restaurant_information", result }]);
@@ -371,7 +779,7 @@ export async function executeFallbackIntent(
     };
   }
 
-  // 9. General menu browse and friendly hospitality greeting
+  // 10. General menu browse and friendly hospitality greeting
   const recResult = await tools.recommend_items.execute({ tasteNotes: "hearth signature" }, session);
   const text = `Hey! Tonight we're featuring dishes cooked over white oak embers, including our **${recResult.highlight.name}** (${recResult.highlight.priceFormatted}) and **${recResult.complement.name}** (${recResult.complement.priceFormatted}). What are you in the mood for?`;
 
@@ -401,7 +809,51 @@ export async function processConciergeTurn(
   // Record user's turn in DB
   await recordMessage(conv.conversationId, "user", userMessage);
 
-  // If Gemini API key is configured, use Google Generative AI agent loop
+  // 1. Grok / xAI Autonomous Agent takes priority
+  if (config.grokApiKey) {
+    try {
+      const grokRes = await runOpenAIAgent(
+        {
+          apiUrl: config.grokApiUrl || "https://api.x.ai/v1",
+          apiKey: config.grokApiKey,
+          model: config.grokModel || "grok-beta",
+        },
+        userMessage,
+        session,
+        conv,
+        promptConfig
+      );
+      if (grokRes) return grokRes;
+    } catch (err) {
+      console.warn("Grok agent call failed, attempting fallback provider:", err);
+    }
+  }
+
+  // 2. OpenRouter (Hosts Grok-2 and free frontier models)
+  if (config.openRouterKey) {
+    try {
+      const orRes = await runOpenAIAgent(
+        {
+          apiUrl: "https://openrouter.ai/api/v1",
+          apiKey: config.openRouterKey,
+          model: config.openRouterModel || "x-ai/grok-2-1212",
+          headers: {
+            "HTTP-Referer": config.appUrl,
+            "X-Title": "ECHO Dining Sanctuary",
+          },
+        },
+        userMessage,
+        session,
+        conv,
+        promptConfig
+      );
+      if (orRes) return orRes;
+    } catch (err) {
+      console.warn("OpenRouter agent call failed, attempting fallback provider:", err);
+    }
+  }
+
+  // 3. Google Generative AI (Gemini 2.0 Flash)
   if (config.googleAiKey) {
     try {
       const genAI = new GoogleGenerativeAI(config.googleAiKey);
@@ -411,7 +863,6 @@ export async function processConciergeTurn(
         tools: [{ functionDeclarations: buildGeminiToolDeclarations() }],
       });
 
-      // Format recent messages for context
       const chatHistory = conv.recentMessages.slice(-10).map((m) => ({
         role: m.role === "assistant" ? "model" : "user",
         parts: [{ text: m.content }],
@@ -424,7 +875,6 @@ export async function processConciergeTurn(
       const executedCalls: { name: string; args: any }[] = [];
       const executedResults: { tool: string; result: any }[] = [];
 
-      // Loop while the model requests tool calls (up to 4 steps)
       let iterations = 0;
       while (response.functionCalls() && response.functionCalls()!.length > 0 && iterations < 4) {
         iterations++;
@@ -476,11 +926,30 @@ export async function processConciergeTurn(
         suggestions: promptConfig.sampleQuestions.slice(0, 3),
       };
     } catch (err) {
-      console.warn("Gemini agent call encountered an issue, transitioning to deterministic fallback:", err);
-      // Seamlessly fall through to deterministic fallback
+      console.warn("Gemini agent call encountered an issue, transitioning to next provider:", err);
     }
   }
 
-  // Fallback to deterministic intent execution
+  // 4. OpenAI (gpt-4o-mini)
+  if (config.openaiKey) {
+    try {
+      const oaiRes = await runOpenAIAgent(
+        {
+          apiUrl: "https://api.openai.com/v1",
+          apiKey: config.openaiKey,
+          model: config.aiModel || "gpt-4o-mini",
+        },
+        userMessage,
+        session,
+        conv,
+        promptConfig
+      );
+      if (oaiRes) return oaiRes;
+    } catch (err) {
+      console.warn("OpenAI agent call failed:", err);
+    }
+  }
+
+  // 5. High-Intelligence Fallback with Live Web Research & Full Restaurant Engine
   return executeFallbackIntent(userMessage, session);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Check, MapPin, Flame, CheckCircle2, ShoppingBag } from "lucide-react";
+import { Plus, Check, MapPin, Flame, CheckCircle2, ShoppingBag, Globe, ExternalLink } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 
 interface DiningCardsProps {
@@ -236,6 +236,35 @@ export const DiningCards: React.FC<DiningCardsProps> = ({
               <p className="text-xs text-ivory/70 font-light">
                 {result.details || "Your wood-fired dishes are currently being prepared on the white oak hearth embers."}
               </p>
+            </div>
+          );
+        }
+
+        // 4. Live Web Research Citations (Alexa & Grok Web Research)
+        if (tool === "web_search" && result.results && result.results.length > 0) {
+          return (
+            <div
+              key={index}
+              className="bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl p-4 text-ivory space-y-3 shadow-lg"
+            >
+              <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-ember font-mono font-medium">
+                <Globe className="w-4 h-4 text-ember shrink-0" />
+                <span>Web Research Sources ({result.results.length})</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {result.results.map((src: any, sIdx: number) => (
+                  <a
+                    key={sIdx}
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-ivory/90 hover:text-white transition-all group"
+                  >
+                    <span className="truncate max-w-[200px]">{src.title}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-ember shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
+                ))}
+              </div>
             </div>
           );
         }

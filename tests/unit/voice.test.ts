@@ -1,11 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { getConfig } from "@/lib/config";
 import { RealAudioAnalyser } from "@/lib/voice/webaudio";
+import { cleanTextForSpeech } from "@/hooks/useVoice";
 
 describe("Voice AI Subsystem (ElevenLabs & WebAudio)", () => {
   it("configures ElevenLabs Voice ID to tm4rC0Q4St1T4Nq6wyLZ", () => {
     const config = getConfig();
     expect(config.elevenLabsVoiceId).toBe("tm4rC0Q4St1T4Nq6wyLZ");
+  });
+
+  it("cleanTextForSpeech cleans markdown, currency, and symbols for natural human speech", () => {
+    const raw = "Tonight we feature **Wood-Fired Duck Breast** ($38.00) with [Ember Jus](https://example.com) & *foraged spruce*! 🦆";
+    const cleaned = cleanTextForSpeech(raw);
+    expect(cleaned).toContain("Wood-Fired Duck Breast");
+    expect(cleaned).toContain("38.00 dollars");
+    expect(cleaned).toContain("Ember Jus");
+    expect(cleaned).toContain("foraged spruce");
+    expect(cleaned).toContain(" and ");
+    expect(cleaned).not.toContain("**");
+    expect(cleaned).not.toContain("https://");
+    expect(cleaned).not.toContain("🦆");
   });
 
   it("RealAudioAnalyser produces 16 normalized frequency bins", () => {
