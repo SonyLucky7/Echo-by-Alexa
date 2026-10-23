@@ -175,31 +175,13 @@ export function useVoice() {
     };
   }, [isOpen, voiceState]);
 
-  // Synthetic frequency oscillator so waveform dances smoothly during speech
+  // Synthetic frequency oscillator: visualizer canvas renders 60fps GPU undulation autonomously without React re-render lag
   const startSynthOscillator = useCallback(() => {
-    if (synthOscillatorIntervalRef.current) {
-      clearInterval(synthOscillatorIntervalRef.current);
-    }
-    let phase = 0;
-    synthOscillatorIntervalRef.current = setInterval(() => {
-      phase += 0.22;
-      const simulatedFreqs = Array.from({ length: 16 }, (_, i) => {
-        const val =
-          Math.sin(phase + i * 0.45) * 0.35 +
-          Math.cos(phase * 0.8 + i * 0.3) * 0.3 +
-          0.35;
-        return Math.max(0.1, Math.min(val, 0.95));
-      });
-      setFrequencies(simulatedFreqs);
-    }, 45);
+    // Autonomous GPU canvas motion in EmberOrbVisualizer
   }, []);
 
   const stopSynthOscillator = useCallback(() => {
-    if (synthOscillatorIntervalRef.current) {
-      clearInterval(synthOscillatorIntervalRef.current);
-      synthOscillatorIntervalRef.current = null;
-    }
-    setFrequencies(new Array(16).fill(0.2));
+    // Autonomous GPU canvas motion in EmberOrbVisualizer
   }, []);
 
   // Stop any active speech immediately

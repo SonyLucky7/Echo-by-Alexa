@@ -1,223 +1,239 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { VoiceState } from "@/hooks/useVoice";
 
 interface EmberOrbVisualizerProps {
   state: VoiceState;
-  frequencies: number[];
+  frequencies?: number[];
 }
 
 export const EmberOrbVisualizer: React.FC<EmberOrbVisualizerProps> = ({
   state,
   frequencies,
 }) => {
-  const isSpeaking = state === "speaking";
-  const isListening = state === "listening";
-  const isProcessing = state === "processing";
-  const isMuted = state === "muted";
-
-  // Real-time audio energy (0 to 1) from frequencies
-  const rawAvg =
-    frequencies && frequencies.length > 0
-      ? frequencies.reduce((a, b) => a + b, 0) / frequencies.length
-      : 0.2;
-
-  const [wavePaths, setWavePaths] = useState({
-    wave1: "",
-    wave2: "",
-    wave3: "",
-  });
-
-  const phaseRef = useRef<number>(0);
-  const animFrameRef = useRef<number | null>(null);
-  const energyRef = useRef<number>(0.35);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stateRef = useRef<VoiceState>(state);
+  const frequenciesRef = useRef<number[]>(frequencies || []);
 
   useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    frequenciesRef.current = frequencies || [];
+  }, [frequencies]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
     let isRunning = true;
+    let animFrame: number;
+    let phase = 0;
+    let currentEnergy = 0.35;
+
+    // Handle high-DPI displays (Retina/4K)
+    const resizeCanvas = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 800;
+      const h = rect.height || 140;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      if (ctx.resetTransform) {
+        ctx.resetTransform();
+      } else {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      ctx.scale(dpr, dpr);
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
     const render = () => {
       if (!isRunning) return;
 
-      // Target energy based on state
-      const targetEnergy = isMuted
-        ? 0.08
-        : isSpeaking
-        ? Math.max(0.65, rawAvg * 1.8)
-        : isListening
-        ? Math.max(0.4, rawAvg * 2.2)
-        : isProcessing
-        ? 0.5
-        : 0.32;
+      const currentState = stateRef.current;
+      const freqs = frequenciesRef.current;
+      const rawAvg =
+        freqs.length > 0
+          ? freqs.reduce((a, b) => a + b, 0) / freqs.length
+          : 0.2;
 
-      energyRef.current += (targetEnergy - energyRef.current) * 0.12;
-      const energy = energyRef.current;
+      const isSpeaking = currentState === "speaking";
+      const isListening = currentState === "listening";
+      const isProcessing = currentState === "processing";
+      const isMuted = currentState === "muted";
+
+      // Target amplitude and phase speed based on conversational state
+      const targetEnergy = isMuted
+        ? 0.05
+        : isSpeaking
+        ? Math.max(0.68, rawAvg * 1.8)
+        : isListening
+        ? Math.max(0.48, rawAvg * 2.2)
+        : isProcessing
+        ? 0.54
+        : 0.28;
+
+      currentEnergy += (targetEnergy - currentEnergy) * 0.1;
 
       const speed = isSpeaking
         ? 0.045
         : isListening
-        ? 0.03
+        ? 0.034
         : isProcessing
         ? 0.038
         : isMuted
         ? 0.005
-        : 0.016;
+        : 0.018;
 
-      phaseRef.current += speed;
-      const phase = phaseRef.current;
+      phase += speed;
 
-      // Generate organic fluid acoustic silk ribbons (Matches Reference Image 1)
-      const width = 800;
-      const height = 180;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || 800;
+      const height = rect.height || 140;
       const centerY = height / 2;
-      const baseAmp = 42 * energy;
-      const pointsCount = 64;
+      const baseAmp = Math.min(height * 0.45, 38 * currentEnergy);
+      const pointsCount = 140;
       const step = width / pointsCount;
 
-      const buildRibbon = (
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw one continuous closed fluid silk ribbon with Bézier curves
+      const drawRibbon = (
         freq: number,
         phaseOffset: number,
-        ampMult: number
+        ampMult: number,
+        fillGradient: CanvasGradient
       ) => {
-        let topPoints: { x: number; y: number }[] = [];
-        let bottomPoints: { x: number; y: number }[] = [];
+        ctx.beginPath();
+
+        const topPoints: { x: number; y: number }[] = [];
+        const bottomPoints: { x: number; y: number }[] = [];
 
         for (let i = 0; i <= pointsCount; i++) {
           const x = i * step;
-          const normX = x / width;
-          // Smooth taper at edges
-          const envelope = Math.pow(Math.sin(Math.PI * normX), 1.6);
+          const normX = x / width; // 0 to 1
 
+          // Envelope: razor-sharp needle taper at both ends (Reference match)
+          const envelope = Math.pow(Math.sin(normX * Math.PI), 2.2);
+
+          // Dual harmonic undulation
           const h1 = Math.sin(normX * Math.PI * freq * 2 + phase + phaseOffset);
           const h2 = Math.cos(normX * Math.PI * (freq * 1.3) - phase * 0.6);
-          const yOffsetTop =
-            (h1 * 0.7 + h2 * 0.35 + 0.25) * baseAmp * ampMult * envelope;
+          const yOffsetTop = (h1 * 0.72 + h2 * 0.35 + 0.25) * baseAmp * ampMult * envelope;
 
-          const hB1 = Math.sin(normX * Math.PI * freq * 2 + phase + phaseOffset + 0.8);
+          const hB1 = Math.sin(normX * Math.PI * freq * 2 + phase + phaseOffset + 0.85);
           const hB2 = Math.cos(normX * Math.PI * (freq * 1.1) - phase * 0.5);
-          const yOffsetBottom =
-            (hB1 * 0.65 + hB2 * 0.35 + 0.25) * baseAmp * (ampMult * 0.95) * envelope;
+          const yOffsetBottom = (hB1 * 0.68 + hB2 * 0.35 + 0.25) * baseAmp * (ampMult * 0.95) * envelope;
 
           topPoints.push({ x, y: centerY - yOffsetTop });
           bottomPoints.push({ x, y: centerY + yOffsetBottom });
         }
 
-        // Closed ribbon polygon
-        let d = `M ${topPoints[0].x.toFixed(1)} ${topPoints[0].y.toFixed(1)}`;
+        // Trace top edge with smooth quadratic Bézier interpolation
+        ctx.moveTo(topPoints[0].x, topPoints[0].y);
         for (let i = 1; i < topPoints.length; i++) {
-          d += ` L ${topPoints[i].x.toFixed(1)} ${topPoints[i].y.toFixed(1)}`;
+          const prev = topPoints[i - 1];
+          const curr = topPoints[i];
+          const midX = (prev.x + curr.x) / 2;
+          const midY = (prev.y + curr.y) / 2;
+          ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
         }
+        ctx.lineTo(topPoints[topPoints.length - 1].x, topPoints[topPoints.length - 1].y);
+
+        // Trace bottom edge in reverse
         for (let i = bottomPoints.length - 1; i >= 0; i--) {
-          d += ` L ${bottomPoints[i].x.toFixed(1)} ${bottomPoints[i].y.toFixed(1)}`;
+          const curr = bottomPoints[i];
+          if (i === bottomPoints.length - 1) {
+            ctx.lineTo(curr.x, curr.y);
+          } else {
+            const next = bottomPoints[i + 1];
+            const midX = (curr.x + next.x) / 2;
+            const midY = (curr.y + next.y) / 2;
+            ctx.quadraticCurveTo(next.x, next.y, midX, midY);
+          }
         }
-        d += " Z";
-        return d;
+        ctx.closePath();
+
+        ctx.fillStyle = fillGradient;
+        ctx.fill();
       };
 
-      setWavePaths({
-        wave1: buildRibbon(1.6, 0, 1.0), // Deep Indigo / Violet
-        wave2: buildRibbon(2.2, 1.4, 1.25), // Electric Cyan / Soft Blue
-        wave3: buildRibbon(1.9, 2.9, 1.45), // Warm Ember / Soft Gold
-      });
+      // Use screen blend mode for glowing additive luminescence (Direct match to reference image)
+      ctx.globalCompositeOperation = "screen";
 
-      animFrameRef.current = requestAnimationFrame(render);
+      // 1. Layer 1: Electric Cyan / Sky Blue Ribbon
+      const cyanGrad = ctx.createLinearGradient(0, centerY, width, centerY);
+      cyanGrad.addColorStop(0, "rgba(56, 189, 248, 0.0)");
+      cyanGrad.addColorStop(0.18, "rgba(56, 189, 248, 0.25)");
+      cyanGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.65)");
+      cyanGrad.addColorStop(0.82, "rgba(56, 189, 248, 0.25)");
+      cyanGrad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+      drawRibbon(1.7, 0.0, 1.15, cyanGrad);
+
+      // 2. Layer 2: Warm Amber / Sunset Hearth Ribbon
+      const amberGrad = ctx.createLinearGradient(0, centerY, width, centerY);
+      amberGrad.addColorStop(0, "rgba(245, 158, 11, 0.0)");
+      amberGrad.addColorStop(0.22, "rgba(245, 158, 11, 0.35)");
+      amberGrad.addColorStop(0.5, "rgba(234, 88, 12, 0.75)");
+      amberGrad.addColorStop(0.78, "rgba(251, 191, 36, 0.4)");
+      amberGrad.addColorStop(1, "rgba(245, 158, 11, 0.0)");
+      drawRibbon(2.1, 1.4, 1.25, amberGrad);
+
+      // 3. Layer 3: Purple / Violet Silk Ribbon
+      const violetGrad = ctx.createLinearGradient(0, centerY, width, centerY);
+      violetGrad.addColorStop(0, "rgba(168, 85, 247, 0.0)");
+      violetGrad.addColorStop(0.28, "rgba(139, 92, 246, 0.3)");
+      violetGrad.addColorStop(0.55, "rgba(168, 85, 247, 0.55)");
+      violetGrad.addColorStop(0.82, "rgba(99, 102, 241, 0.25)");
+      violetGrad.addColorStop(1, "rgba(168, 85, 247, 0.0)");
+      drawRibbon(1.9, 2.8, 1.05, violetGrad);
+
+      // 4. Layer 4: Central Luminescent White/Golden Core Ribbon (Bright focal center)
+      const coreGrad = ctx.createLinearGradient(0, centerY, width, centerY);
+      coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.0)");
+      coreGrad.addColorStop(0.38, "rgba(255, 255, 255, 0.12)");
+      coreGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.88)");
+      coreGrad.addColorStop(0.62, "rgba(255, 255, 255, 0.12)");
+      coreGrad.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+      drawRibbon(2.0, 0.8, 0.65, coreGrad);
+
+      animFrame = requestAnimationFrame(render);
     };
 
-    render();
+    animFrame = requestAnimationFrame(render);
 
     return () => {
       isRunning = false;
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener("resize", resizeCanvas);
     };
-  }, [isSpeaking, isListening, isProcessing, isMuted, rawAvg]);
+  }, []);
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none w-full max-w-2xl mx-auto py-2">
-      {/* Fluid Acoustic Waveform Canvas (Matches Reference Image 1) */}
-      <div className="relative w-full h-32 sm:h-38 flex items-center justify-center overflow-visible">
-        {/* Soft atmospheric radial backlight glow */}
+    <div className="relative flex flex-col items-center justify-center select-none w-full max-w-3xl mx-auto py-2">
+      <div className="relative w-full h-28 sm:h-34 flex items-center justify-center overflow-visible">
+        {/* Soft atmospheric backlight halo */}
         <div
-          className="absolute w-4/5 h-28 rounded-full pointer-events-none blur-[65px] transition-all duration-300"
+          className="absolute w-3/5 h-20 rounded-full pointer-events-none blur-[50px] opacity-40"
           style={{
-            background: isSpeaking || isListening
-              ? "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.4) 0%, rgba(139, 92, 246, 0.3) 40%, rgba(56, 189, 248, 0.15) 70%, transparent 85%)"
-              : "radial-gradient(ellipse at center, rgba(197, 143, 88, 0.2) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(56, 189, 248, 0.1) 80%, transparent 90%)",
-            transform: `scale(${1 + rawAvg * 0.25})`,
+            background:
+              "radial-gradient(ellipse at center, rgba(245, 158, 11, 0.35) 0%, rgba(56, 189, 248, 0.25) 45%, rgba(168, 85, 247, 0.15) 75%, transparent 85%)",
           }}
         />
 
-        {/* 100% Vector Fluid Acoustic Silk Waveform SVG (No harsh white straight lines!) */}
-        <svg
-          viewBox="0 0 800 180"
-          className="w-full h-full relative z-10 overflow-visible"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            {/* Gradient 1: Deep Indigo / Violet */}
-            <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#818CF8" stopOpacity="0.08" />
-              <stop offset="35%" stopColor="#A855F7" stopOpacity="0.5" />
-              <stop offset="65%" stopColor="#6366F1" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#818CF8" stopOpacity="0.08" />
-            </linearGradient>
-
-            {/* Gradient 2: Electric Cyan / Soft Blue */}
-            <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.08" />
-              <stop offset="40%" stopColor="#0EA5E9" stopOpacity="0.55" />
-              <stop offset="60%" stopColor="#38BDF8" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#6366F1" stopOpacity="0.08" />
-            </linearGradient>
-
-            {/* Gradient 3: Warm Hearth Ember / Soft Gold */}
-            <linearGradient id="waveGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#C58F58" stopOpacity="0.1" />
-              <stop offset="35%" stopColor="#F59E0B" stopOpacity="0.6" />
-              <stop offset="60%" stopColor="#C58F58" stopOpacity="0.7" />
-              <stop offset="85%" stopColor="#FBBF24" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#C58F58" stopOpacity="0.1" />
-            </linearGradient>
-
-            {/* Soft Glow Filter */}
-            <filter id="waveGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Layer 1: Violet/Indigo silk ribbon */}
-          {wavePaths.wave1 && (
-            <path
-              d={wavePaths.wave1}
-              fill="url(#waveGrad1)"
-              style={{ mixBlendMode: "screen" }}
-            />
-          )}
-
-          {/* Layer 2: Electric Cyan silk ribbon */}
-          {wavePaths.wave2 && (
-            <path
-              d={wavePaths.wave2}
-              fill="url(#waveGrad2)"
-              style={{ mixBlendMode: "screen" }}
-            />
-          )}
-
-          {/* Layer 3: Warm Ember / Gold silk ribbon */}
-          {wavePaths.wave3 && (
-            <path
-              d={wavePaths.wave3}
-              fill="url(#waveGrad3)"
-              style={{ mixBlendMode: "screen" }}
-              filter="url(#waveGlow)"
-            />
-          )}
-        </svg>
+        {/* 100% Hardware-Accelerated 60FPS Silk Wave Canvas */}
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full relative z-10 block pointer-events-none"
+        />
       </div>
     </div>
   );
