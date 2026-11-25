@@ -1,4 +1,7 @@
 # ECHO — Progressive Global Hearth & Botanicals
+
+[![Sponsor SonyLucky7](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/SonyLucky7)
+
 ### Premium Restaurant Website & Multilingual AI Dining Concierge
 
 ![ECHO Banner](https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1600&auto=format&fit=crop)
@@ -18,24 +21,24 @@ The application combines a high-end editorial digital storefront, intuitive food
   - Real WebAudio FFT `AnalyserNode` frequency spectrum visualizer (organic glowing hearth orb and frequency equalizer responding to live decibel energy; zero fake CSS wave simulations).
   - Graceful fallback to browser Web Speech API when offline or running without API keys.
 - **Authoritative AI Concierge**:
-  - Powered by Gemini 2.0 Flash function calling mapped to 14 verified database tools (`browse_menu`, `get_item_details`, `recommend_items`, `customize_item`, `add_to_cart`, `view_cart`, `update_cart_item`, `remove_from_cart`, `get_restaurant_information`, `prepare_checkout`, `create_checkout_session`, `get_order_status`, `get_order_history`, `cancel_order`).
-  - Seamless fallback to a deterministic semantic intent router when API keys are absent.
-  - Zero hallucination guarantee: The database remains the sole source of truth for dish names, prices, allergens, and inventory.
+- Powered by Gemini 2.0 Flash function calling mapped to 14 verified database tools (`browse_menu`, `get_item_details`, `recommend_items`, `customize_item`, `add_to_cart`, `view_cart`, `update_cart_item`, `remove_from_cart`, `get_restaurant_information`, `prepare_checkout`, `create_checkout_session`, `get_order_status`, `get_order_history`, `cancel_order`).
+- Seamless fallback to a deterministic semantic intent router when API keys are absent.
+- Zero hallucination guarantee: The database remains the sole source of truth for dish names, prices, allergens, and inventory.
 - **Financial Rigor & Integer Math**:
-  - 100% of calculations performed in integer minor units (cents). Zero floating-point rounding errors.
-  - Accurate 8.25% tax ($825$ basis points), packaging fees, and delivery fees.
+- 100% of calculations performed in integer minor units (cents). Zero floating-point rounding errors.
+- Accurate 8.25% tax (825 basis points), packaging fees, and delivery fees.
 - **Multi-Fulfillment Modes**:
-  - **Dine-In**: Select table number for live in-restaurant ordering.
-  - **Pickup**: Schedule curbside or counter takeaway.
-  - **Delivery**: Address verification and real-time courier tracking.
+- **Dine-In**: Select table number for live in-restaurant ordering.
+- **Pickup**: Schedule curbside or counter takeaway.
+- **Delivery**: Address verification and real-time courier tracking.
 - **Order Lifecycle & Real-Time Tracking**:
-  - Strict finite state machine: `PENDING_PAYMENT` $\rightarrow$ `CONFIRMED` $\rightarrow$ `PREPARING` $\rightarrow$ `READY` $\rightarrow$ `OUT_FOR_DELIVERY` / `COMPLETED`.
-  - Live timeline with auto-polling every 15 seconds.
-  - One-click order cancellation with automated refund eligibility checks.
+- Strict finite state machine: `PENDING_PAYMENT` $\rightarrow$ `CONFIRMED` $\rightarrow$ `PREPARING` $\rightarrow$ `READY` $\rightarrow$ `OUT_FOR_DELIVERY` / `COMPLETED`.
+- Live timeline with auto-polling every 15 seconds.
+- One-click order cancellation with automated refund eligibility checks.
 - **Staff Operations Dashboard (`/staff`)**:
-  - Kitchen Kanban board with 4 workflow columns and 10s auto-refresh.
-  - Dish 86 availability toggle by category.
-  - Secured via HTTP-only passkey authentication.
+- Kitchen Kanban board with 4 workflow columns and 10s auto-refresh.
+- Dish 86 availability toggle by category.
+- Secured via HTTP-only passkey authentication.
 
 ---
 
@@ -149,8 +152,8 @@ npm run build
 ```
 
 Run Playwright E2E tests:
-
 ```bash
+
 npm run test:e2e
 ```
 
@@ -158,10 +161,14 @@ npm run test:e2e
 
 ## Architectural Documentation
 
-For the comprehensive domain model, ERD diagrams, tool-calling pipelines, and finite state machine transitions, refer to [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
+For the comprehensive domain model, ERD diagrams, tool-calling pipelines, and finite
+state machine transitions, refer to [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ---
 
 ## License
 
 Private & Proprietary — ECHO Restaurant & Culinary Group. All rights reserved.
+
+## 💖 Sponsor
+
+If you find this project useful, consider [sponsoring me on GitHub](https://github.com/sponsors/SonyLucky7) — your support helps me keep building open-source tools.
